@@ -14,7 +14,7 @@ import { saveSettings } from "@/lib/services/profile";
 import type { UserSettings } from "@/types";
 
 const DEFAULT_SETTINGS: UserSettings = {
-  theme: "system",
+  theme: "light",
   notifications: true,
   email_notifications: true,
   push_notifications: true,
