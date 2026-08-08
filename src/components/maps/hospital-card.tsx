@@ -1,12 +1,15 @@
 "use client";
 
-import { CalendarPlus, MapPin, Phone, Star } from "lucide-react";
+import { CalendarPlus, ExternalLink, MapPin, Navigation, Phone, Star } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { Hospital } from "@/types";
 
 export function HospitalCard({ hospital, selected, onSelect }: { hospital: Hospital & { distanceKm?: number }; selected?: boolean; onSelect?: (h: Hospital) => void }) {
+  const directionsUrl = hospital.latitude && hospital.longitude
+    ? `https://www.google.com/maps/dir/?api=1&destination=${hospital.latitude},${hospital.longitude}`
+    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${hospital.name} ${hospital.city ?? ""}`)}`;
   return (
     <div
       className={`rounded-2xl border bg-card p-4 transition-all hover:shadow-md ${
@@ -79,6 +82,21 @@ export function HospitalCard({ hospital, selected, onSelect }: { hospital: Hospi
             Book
           </Link>
         </Button>
+      </div>
+
+      <div className="mt-2.5 flex flex-wrap items-center gap-2 border-t pt-2.5">
+        <Button size="sm" variant="outline" asChild className="flex-1">
+          <a href={directionsUrl} target="_blank" rel="noopener noreferrer">
+            <Navigation className="h-3.5 w-3.5" /> Directions
+          </a>
+        </Button>
+        {hospital.website && (
+          <Button size="sm" variant="outline" asChild className="flex-1">
+            <a href={hospital.website} target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="h-3.5 w-3.5" /> Website
+            </a>
+          </Button>
+        )}
       </div>
     </div>
   );

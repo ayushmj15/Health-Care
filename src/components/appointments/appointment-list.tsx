@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarX2, Clock, MapPin, Video } from "lucide-react";
+import { CalendarX2, Clock, ExternalLink, MapPin, Navigation, Video } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -107,16 +107,40 @@ export function AppointmentList({
                   {a.reason && <p className="mt-1 text-xs italic text-muted-foreground">“{a.reason}”</p>}
                 </div>
 
-                {cancellable && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="shrink-0 text-destructive hover:text-destructive"
-                    onClick={() => setCancelling(a)}
-                  >
-                    Cancel
-                  </Button>
-                )}
+                <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+                  {a.hospital?.website && (
+                    <Button size="sm" variant="outline" asChild>
+                      <a href={a.hospital.website} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="h-3.5 w-3.5" /> Website
+                      </a>
+                    </Button>
+                  )}
+                  {a.type === "in-person" && a.hospital && (
+                    <Button size="sm" variant="outline" asChild>
+                      <a
+                        href={
+                          a.hospital.latitude != null && a.hospital.longitude != null
+                            ? `https://www.google.com/maps/dir/?api=1&destination=${a.hospital.latitude},${a.hospital.longitude}`
+                            : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a.hospital.name)}`
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Navigation className="h-3.5 w-3.5" /> Directions
+                      </a>
+                    </Button>
+                  )}
+                  {cancellable && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="shrink-0 text-destructive hover:text-destructive"
+                      onClick={() => setCancelling(a)}
+                    >
+                      Cancel
+                    </Button>
+                  )}
+                </div>
               </CardContent>
             </Card>
           );

@@ -173,6 +173,7 @@ export interface EmergencyContact {
   name: string;
   relation: string | null;
   phone: string;
+  email: string | null;
 }
 
 export interface AppNotification {

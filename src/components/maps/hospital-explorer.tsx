@@ -1,7 +1,7 @@
 "use client";
 
 import { Crosshair, Loader2, MapPin, Navigation, Siren } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { HospitalCard } from "@/components/maps/hospital-card";
 import { HospitalMap } from "@/components/maps/hospital-map";
@@ -22,6 +22,7 @@ export function HospitalExplorer({ hospitals, cities }: { hospitals: Hospital[];
   const [emergencyOnly, setEmergencyOnly] = useState(false);
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locating, setLocating] = useState(false);
+  const [locationDenied, setLocationDenied] = useState(false);
   const [selected, setSelected] = useState<Hospital | null>(null);
 
   function locateMe() {
@@ -33,16 +34,23 @@ export function HospitalExplorer({ hospitals, cities }: { hospitals: Hospital[];
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setLocationDenied(false);
         setLocating(false);
-        toast.success("Location found — hospitals sorted by distance.");
+        toast.success("Location found — hospitals sorted by distance from you.");
       },
       () => {
+        setLocationDenied(true);
         setLocating(false);
         toast.error("Could not access your location. Check browser permissions.");
       },
-      { timeout: 10000 },
+      { enableHighAccuracy: true, timeout: 10000 },
     );
   }
+
+  useEffect(() => {
+    locateMe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const filtered = useMemo(() => {
     let list = [...hospitals];
@@ -65,9 +73,13 @@ export function HospitalExplorer({ hospitals, cities }: { hospitals: Hospital[];
     return withDistance(list);
   }, [hospitals, search, speciality, city, emergencyOnly, location]);
 
-  const mapCenter = location ?? (filtered.find((h) => h.latitude && h.longitude)?.latitude && filtered.find((h) => h.latitude && h.longitude)?.longitude
-    ? { lat: filtered.find((h) => h.latitude)!.latitude!, lng: filtered.find((h) => h.longitude)!.longitude! }
-    : undefined);
+  const mapCenter = useMemo(() => {
+    if (location) return location;
+    const first = filtered.find((h) => h.latitude && h.longitude);
+    return first?.latitude && first?.longitude
+      ? { lat: first.latitude, lng: first.longitude }
+      : undefined;
+  }, [location, filtered]);
 
   return (
     <div className="space-y-5">
@@ -118,9 +130,22 @@ export function HospitalExplorer({ hospitals, cities }: { hospitals: Hospital[];
         </div>
         <Button variant="outline" onClick={locateMe} disabled={locating} className="sm:col-span-2 lg:col-span-1">
           {locating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Crosshair className="h-4 w-4" />}
-          {location ? "Re-locate me" : "Use my location"}
+          {locating ? "Finding location…" : location ? "Re-locate me" : "Use my location"}
         </Button>
       </div>
+
+      {locationDenied && (
+        <p className="rounded-xl border border-amber-400/30 bg-amber-500/5 px-4 py-2.5 text-xs text-amber-700 dark:text-amber-400">
+          Location access is off — hospitals are shown in default order. Allow location in your browser to see the
+          nearest hospitals first.
+        </p>
+      )}
+      {location && (
+        <p className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Navigation className="h-3.5 w-3.5 text-primary" />
+          Showing hospitals sorted by distance from your current location.
+        </p>
+      )}
 
       {/* Map */}
       <div className="overflow-hidden rounded-2xl border">

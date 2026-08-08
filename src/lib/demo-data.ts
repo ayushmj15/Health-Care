@@ -554,8 +554,8 @@ export const DEMO_REMINDERS: Reminder[] = [
 ];
 
 export const DEMO_EMERGENCY_CONTACTS: EmergencyContact[] = [
-  { id: "ec1", patient_id: DEMO_USER.id, name: "Sarah Johnson", relation: "Wife", phone: "+91 91234 56780" },
-  { id: "ec2", patient_id: DEMO_USER.id, name: "Mike Johnson", relation: "Brother", phone: "+91 99887 66554" },
+  { id: "ec1", patient_id: DEMO_USER.id, name: "Sarah Johnson", relation: "Wife", phone: "+91 91234 56780", email: "sarah.johnson@example.com" },
+  { id: "ec2", patient_id: DEMO_USER.id, name: "Mike Johnson", relation: "Brother", phone: "+91 99887 66554", email: "mike.johnson@example.com" },
 ];
 
 export const DEMO_NOTIFICATIONS: AppNotification[] = [

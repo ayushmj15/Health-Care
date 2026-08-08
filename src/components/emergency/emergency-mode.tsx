@@ -40,6 +40,19 @@ const AMBULANCE_NUMBERS = [
   { name: "Fire & Rescue", number: "101" },
 ];
 
+const MAX_CONTACTS = 3;
+
+function getCurrentPosition(): Promise<{ lat: number; lng: number }> {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) return reject(new Error("Geolocation not supported"));
+    navigator.geolocation.getCurrentPosition(
+      (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      (err) => reject(err),
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
+  });
+}
+
 export function EmergencyMode({
   user,
   hospitals,
@@ -55,7 +68,7 @@ export function EmergencyMode({
   const [location, setLocation] = useState<{ lat: number; lng: number; address?: string } | null>(null);
   const [locating, setLocating] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
-  const [newContact, setNewContact] = useState({ name: "", relation: "", phone: "" });
+  const [newContact, setNewContact] = useState({ name: "", relation: "", phone: "", email: "" });
 
   const emergencyHospitals = nearestHospitals(
     hospitals.filter((h) => h.emergency),
@@ -67,13 +80,48 @@ export function EmergencyMode({
     setSosActive(true);
     setSending(true);
     try {
-      await new Promise((r) => setTimeout(r, 600));
-      // In demo mode we simply open the emergency contacts' SMS/phone links.
-      const primary = contacts[0];
-      if (primary) {
-        window.open(`sms:${primary.phone.replace(/\D/g, "")}?body=EMERGENCY! I need help. My live location is shared via Health Care.`, "_self");
+      if (contacts.length === 0) {
+        toast.error("Add at least one emergency contact before triggering SOS.");
+        setSosActive(false);
+        return;
       }
-      toast.success("SOS alert sent to your emergency contacts.");
+
+      let mapsUrl = "";
+      if (location) {
+        mapsUrl = `https://www.google.com/maps?q=${location.lat},${location.lng}`;
+      } else {
+        try {
+          const coords = await getCurrentPosition();
+          setLocation(coords);
+          mapsUrl = `https://www.google.com/maps?q=${coords.lat},${coords.lng}`;
+        } catch {
+          // location unavailable — send message without a live location link
+        }
+      }
+
+      const baseText = "EMERGENCY! I need help right now.";
+      const locationText = mapsUrl ? ` My live location: ${mapsUrl}` : "";
+      const message = `${baseText}${locationText} (sent via Health Care app)`;
+
+      contacts.forEach((c, i) => {
+        setTimeout(() => {
+          if (c.phone) {
+            window.open(
+              `https://wa.me/${c.phone.replace(/\D/g, "")}?text=${encodeURIComponent(message)}`,
+              "_blank",
+              "noopener,noreferrer",
+            );
+          }
+          if (c.email) {
+            window.open(
+              `mailto:${c.email}?subject=${encodeURIComponent("EMERGENCY — I need help")}&body=${encodeURIComponent(message)}`,
+              "_blank",
+            );
+          }
+        }, i * 800);
+      });
+
+      toast.success(`SOS alert sent to ${contacts.length} contact(s)${mapsUrl ? " with your live location" : ""}.`);
     } catch {
       toast.error("Could not send SOS.");
     } finally {
@@ -122,10 +170,11 @@ export function EmergencyMode({
         name: newContact.name,
         relation: newContact.relation || null,
         phone: newContact.phone,
+        email: newContact.email || null,
       });
       setContacts((prev) => [...prev, created]);
       setAddOpen(false);
-      setNewContact({ name: "", relation: "", phone: "" });
+      setNewContact({ name: "", relation: "", phone: "", email: "" });
       toast.success("Emergency contact added.");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not add contact.");
@@ -247,42 +296,46 @@ export function EmergencyMode({
         {/* Contacts + medical profile */}
         <div className="space-y-6">
           <div className="rounded-2xl border bg-card p-5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-primary" />
-                <h3 className="text-base font-semibold">Emergency contacts</h3>
-              </div>
-              <Button size="sm" variant="outline" onClick={() => setAddOpen(true)}>
-                <Plus className="h-4 w-4" /> Add
-              </Button>
-            </div>
-            <div className="mt-4 space-y-2.5">
-              {contacts.length === 0 && (
-                <p className="rounded-xl border border-dashed p-4 text-center text-sm text-muted-foreground">
-                  No emergency contacts yet. Add family or friends who should be notified in a crisis.
-                </p>
-              )}
-              {contacts.map((c) => (
-                <div key={c.id} className="flex items-center justify-between rounded-xl border p-3">
-                  <div>
-                    <p className="text-sm font-semibold">{c.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {c.relation ?? "Contact"} · {c.phone}
-                    </p>
-                  </div>
-                  <div className="flex gap-1.5">
-                    <Button size="iconSm" variant="outline" asChild>
-                      <a href={`tel:${c.phone.replace(/\D/g, "")}`} aria-label={`Call ${c.name}`}>
-                        <Phone className="h-4 w-4" />
-                      </a>
-                    </Button>
-                    <Button size="iconSm" variant="ghost" onClick={() => removeContact(c.id)} aria-label="Remove">
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-primary" />
+                  <h3 className="text-base font-semibold">Emergency contacts</h3>
                 </div>
-              ))}
-            </div>
+                <Button size="sm" variant="outline" onClick={() => setAddOpen(true)} disabled={contacts.length >= MAX_CONTACTS}>
+                  <Plus className="h-4 w-4" /> Add
+                </Button>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {contacts.length}/{MAX_CONTACTS} — SOS will alert all contacts via WhatsApp &amp; email with your live location.
+              </p>
+              <div className="mt-3 space-y-2.5">
+                {contacts.length === 0 && (
+                  <p className="rounded-xl border border-dashed p-4 text-center text-sm text-muted-foreground">
+                    No emergency contacts yet. Add family or friends who should be notified in a crisis.
+                  </p>
+                )}
+                {contacts.map((c) => (
+                  <div key={c.id} className="flex items-center justify-between rounded-xl border p-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold">{c.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {c.relation ?? "Contact"} · {c.phone}
+                        {c.email ? ` · ${c.email}` : ""}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 gap-1.5">
+                      <Button size="iconSm" variant="outline" asChild>
+                        <a href={`tel:${c.phone.replace(/\D/g, "")}`} aria-label={`Call ${c.name}`}>
+                          <Phone className="h-4 w-4" />
+                        </a>
+                      </Button>
+                      <Button size="iconSm" variant="ghost" onClick={() => removeContact(c.id)} aria-label="Remove">
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
           </div>
 
           <div className="rounded-2xl border bg-card p-5">
@@ -362,6 +415,10 @@ export function EmergencyMode({
             <div className="space-y-2">
               <Label>Phone</Label>
               <Input value={newContact.phone} onChange={(e) => setNewContact({ ...newContact, phone: e.target.value })} placeholder="+91 98765 43210" inputMode="tel" />
+            </div>
+            <div className="space-y-2">
+              <Label>Email (optional)</Label>
+              <Input value={newContact.email} onChange={(e) => setNewContact({ ...newContact, email: e.target.value })} placeholder="sarah@example.com" type="email" />
             </div>
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={() => setAddOpen(false)}>

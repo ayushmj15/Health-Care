@@ -3,6 +3,7 @@
 import { Menu } from "lucide-react";
 import { useState } from "react";
 import { DemoModeBanner } from "@/components/shared/demo-banner";
+import { PwaInstallBanner } from "@/components/pwa/pwa-install-banner";
 import { Logo } from "@/components/shared/logo";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { NotificationsDropdown, UserMenu } from "@/components/dashboard/user-menu";
@@ -32,6 +33,7 @@ export function DashboardShell({
     <UserProvider value={{ user, isDemo, setUser: () => {} }}>
       <TooltipProvider delayDuration={200}>
         <div className="min-h-screen">
+          <PwaInstallBanner />
           <DemoModeBanner />
 
           {/* Desktop sidebar */}

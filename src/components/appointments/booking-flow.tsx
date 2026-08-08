@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
-import { Building2, CalendarDays, Check, ChevronLeft, Clock, Stethoscope, Video } from "lucide-react";
+import { Building2, CalendarDays, Check, ChevronLeft, Clock, ExternalLink, Navigation, Stethoscope, Video } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -186,6 +186,16 @@ export function BookingFlow({
                         </Badge>
                       ))}
                     </div>
+                    {selectedHospital.website && (
+                      <a
+                        href={selectedHospital.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" /> Visit hospital website
+                      </a>
+                    )}
                   </div>
                 </div>
               )}
@@ -392,6 +402,30 @@ export function BookingFlow({
                 <div className="mt-4 flex items-center justify-between border-t pt-4">
                   <span className="text-sm text-muted-foreground">Consultation fee</span>
                   <span className="text-lg font-bold">₹{selectedDoctor.fee}</span>
+                </div>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {selectedHospital.website && (
+                    <Button size="sm" variant="outline" asChild>
+                      <a href={selectedHospital.website} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="h-3.5 w-3.5" /> Hospital website
+                      </a>
+                    </Button>
+                  )}
+                  {form.getValues("type") === "in-person" && (
+                    <Button size="sm" variant="outline" asChild>
+                      <a
+                        href={
+                          selectedHospital.latitude != null && selectedHospital.longitude != null
+                            ? `https://www.google.com/maps/dir/?api=1&destination=${selectedHospital.latitude},${selectedHospital.longitude}`
+                            : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedHospital.name)}`
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Navigation className="h-3.5 w-3.5" /> Directions
+                      </a>
+                    </Button>
+                  )}
                 </div>
               </div>
               <p className="text-xs text-muted-foreground">
