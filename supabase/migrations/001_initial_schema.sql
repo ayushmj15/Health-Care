@@ -372,16 +372,21 @@ end $$;
 create trigger users_updated_at before update on public.users
   for each row execute function public.set_updated_at();
 
--- Auto-create profile row when a new auth user signs up
+-- Auto-create profile row when a new auth user signs up (email or phone)
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
-  insert into public.users (id, email, full_name, avatar_url)
+  insert into public.users (id, email, full_name, avatar_url, phone)
   values (
     new.id,
-    new.email,
-    coalesce(new.raw_user_meta_data ->> 'full_name', new.raw_user_meta_data ->> 'name', split_part(new.email, '@', 1)),
-    new.raw_user_meta_data ->> 'avatar_url'
+    coalesce(new.email, new.phone),
+    coalesce(
+      new.raw_user_meta_data ->> 'full_name',
+      new.raw_user_meta_data ->> 'name',
+      case when new.email is not null then split_part(new.email, '@', 1) else new.phone end
+    ),
+    new.raw_user_meta_data ->> 'avatar_url',
+    new.phone
   )
   on conflict (id) do nothing;
   return new;

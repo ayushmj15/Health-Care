@@ -31,6 +31,17 @@ export const resetPasswordSchema = z
     path: ["confirmPassword"],
   });
 
+const phonePattern = /^\+?[0-9\s()-]{7,16}$/;
+
+export const phoneSchema = z.object({
+  phone: z.string().regex(phonePattern, "Enter a valid phone number"),
+});
+
+export const phoneVerifySchema = z.object({
+  phone: z.string().regex(phonePattern, "Enter a valid phone number"),
+  otp: z.string().regex(/^\d{6}$/, "Enter the 6-digit code"),
+});
+
 export const appointmentSchema = z.object({
   hospitalId: z.string().min(1, "Select a hospital"),
   doctorId: z.string().min(1, "Select a doctor"),
@@ -101,6 +112,8 @@ export const hospitalSchema = z.object({
 
 export type LoginInput = z.infer<typeof loginSchema>;
 export type SignupInput = z.infer<typeof signupSchema>;
+export type PhoneInput = z.infer<typeof phoneSchema>;
+export type PhoneVerifyInput = z.infer<typeof phoneVerifySchema>;
 export type AppointmentInput = z.infer<typeof appointmentSchema>;
 export type MedicineInput = z.infer<typeof medicineSchema>;
 export type ReportInput = z.infer<typeof reportSchema>;
