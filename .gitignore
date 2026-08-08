@@ -45,3 +45,6 @@ __pycache__/
 venv/
 backend/.env
 *.egg-info/
+
+# duplicate local clone
+/Health-Care

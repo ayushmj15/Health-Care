@@ -269,6 +269,14 @@ alter table public.notifications enable row level security;
 alter table public.ai_chats enable row level security;
 alter table public.ai_usage enable row level security;
 
+-- Security definer helper so admin role checks don't recurse through RLS
+create or replace function public.is_admin()
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists (
+    select 1 from public.users where id = auth.uid() and role = 'admin'
+  );
+$$;
+
 -- PROFILES
 create policy "Users can read own profile"
   on public.users for select using (auth.uid() = id);
@@ -277,21 +285,21 @@ create policy "Users can update own profile"
   on public.users for update using (auth.uid() = id);
 
 create policy "Admin can read all profiles"
-  on public.users for select using (exists (select 1 from public.users u where u.id = auth.uid() and u.role = 'admin'));
+  on public.users for select using (public.is_admin());
 
 -- HOSPITALS (publicly readable once authenticated)
 create policy "Anyone can read hospitals"
   on public.hospitals for select using (true);
 
 create policy "Admin can manage hospitals"
-  on public.hospitals for all using (exists (select 1 from public.users u where u.id = auth.uid() and u.role = 'admin'));
+  on public.hospitals for all using (public.is_admin());
 
 -- DOCTORS
 create policy "Anyone can read doctors"
   on public.doctors for select using (true);
 
 create policy "Admin can manage doctors"
-  on public.doctors for all using (exists (select 1 from public.users u where u.id = auth.uid() and u.role = 'admin'));
+  on public.doctors for all using (public.is_admin());
 
 -- APPOINTMENTS
 create policy "Patients manage own appointments"
@@ -301,7 +309,7 @@ create policy "Doctors see own appointments"
   on public.appointments for select using (exists (select 1 from public.doctors d where d.id = doctor_id and d.id in (select d2.id from public.doctors d2 where true)));
 
 create policy "Admin manages appointments"
-  on public.appointments for all using (exists (select 1 from public.users u where u.id = auth.uid() and u.role = 'admin'));
+  on public.appointments for all using (public.is_admin());
 
 -- PRESCRIPTIONS
 create policy "Patients manage own prescriptions"
@@ -336,7 +344,7 @@ create policy "Users read own ai usage"
   on public.ai_usage for select using (auth.uid() = user_id);
 
 create policy "Admin reads all ai usage"
-  on public.ai_usage for select using (exists (select 1 from public.users u where u.id = auth.uid() and u.role = 'admin'));
+  on public.ai_usage for select using (public.is_admin());
 
 create policy "Insert ai usage"
   on public.ai_usage for insert with check (auth.uid() = user_id);
@@ -399,7 +407,7 @@ values
 on conflict (slug) do nothing;
 
 insert into public.doctors (hospital_id, name, speciality, qualifications, experience_years, fee, rating, bio, available_days, available_from, available_to)
-select h.id, d.name, d.speciality, d.qualifications, d.experience_years, d.fee, d.rating, d.bio, d.available_days, d.available_from, d.available_to
+select h.id, d.name, d.speciality, d.qualifications, d.experience_years, d.fee, d.rating, d.bio, string_to_array(d.available_days, ','), d.available_from::time, d.available_to::time
 from public.hospitals h
 cross join (
   values
