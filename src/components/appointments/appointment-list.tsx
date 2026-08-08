@@ -15,6 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/shared/empty-state";
+import { hospitalDirectionsUrl } from "@/lib/maps";
 import { formatDate, formatTime } from "@/lib/utils";
 import { updateAppointmentStatus } from "@/lib/services/appointments";
 import type { Appointment } from "@/types";
@@ -117,15 +118,7 @@ export function AppointmentList({
                   )}
                   {a.type === "in-person" && a.hospital && (
                     <Button size="sm" variant="outline" asChild>
-                      <a
-                        href={
-                          a.hospital.latitude != null && a.hospital.longitude != null
-                            ? `https://www.google.com/maps/dir/?api=1&destination=${a.hospital.latitude},${a.hospital.longitude}`
-                            : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a.hospital.name)}`
-                        }
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
+                      <a href={hospitalDirectionsUrl(a.hospital)} target="_blank" rel="noopener noreferrer">
                         <Navigation className="h-3.5 w-3.5" /> Directions
                       </a>
                     </Button>

@@ -11,6 +11,7 @@ import { Logo } from "@/components/shared/logo";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { NotificationsDropdown, UserMenu } from "@/components/dashboard/user-menu";
 import { SidebarNav } from "@/components/dashboard/sidebar-nav";
+import { AiAssistantFab } from "@/components/dashboard/ai-assistant-fab";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -125,6 +126,8 @@ export function DashboardShell({
               Health Care · AI guidance is informational only and not a substitute for professional medical advice.
             </footer>
           </div>
+
+          <AiAssistantFab />
         </div>
       </TooltipProvider>
     </UserProvider>

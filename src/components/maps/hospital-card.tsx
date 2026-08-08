@@ -4,12 +4,11 @@ import { CalendarPlus, ExternalLink, MapPin, Navigation, Phone, Star } from "luc
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { hospitalDirectionsUrl } from "@/lib/maps";
 import type { Hospital } from "@/types";
 
 export function HospitalCard({ hospital, selected, onSelect }: { hospital: Hospital & { distanceKm?: number }; selected?: boolean; onSelect?: (h: Hospital) => void }) {
-  const directionsUrl = hospital.latitude && hospital.longitude
-    ? `https://www.google.com/maps/dir/?api=1&destination=${hospital.latitude},${hospital.longitude}`
-    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${hospital.name} ${hospital.city ?? ""}`)}`;
+  const directionsUrl = hospitalDirectionsUrl(hospital);
   return (
     <div
       className={`rounded-2xl border bg-card p-4 transition-all hover:shadow-md ${

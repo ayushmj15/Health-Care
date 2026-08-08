@@ -39,7 +39,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { EmptyState } from "@/components/shared/empty-state";
 import { REPORT_CATEGORIES } from "@/lib/constants";
-import { addReport, deleteReport, uploadRecordFile } from "@/lib/services/records";
+import { addReport, deleteReport, uploadRecordFile, resolveRecordFileUrl } from "@/lib/services/records";
 import { reportSchema, type ReportInput } from "@/lib/validations";
 import { formatBytes, formatDate } from "@/lib/utils";
 import type { Report, ReportCategory } from "@/types";
@@ -112,6 +112,7 @@ export function RecordsExplorer({
         fileUrl = await uploadRecordFile(userId, file);
         fileType = file.type;
         fileSize = file.size;
+        toast.success(`"${file.name}" uploaded successfully.`);
       }
 
       const created = await addReport({
@@ -148,11 +149,12 @@ export function RecordsExplorer({
   }
 
   function download(report: Report) {
-    if (!report.file_url) {
-      toast.info("This demo report has no attached file. Connect Supabase storage to enable downloads.");
+    const url = resolveRecordFileUrl(report.file_url);
+    if (!url) {
+      toast.info("No file attached to this record.");
       return;
     }
-    window.open(report.file_url, "_blank");
+    window.open(url, "_blank");
   }
 
   return (
@@ -327,9 +329,19 @@ export function RecordsExplorer({
               <div>
                 <FormLabel>File (PDF / image)</FormLabel>
                 <label className="mt-1.5 flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed p-6 text-center transition-colors hover:border-primary/40 hover:bg-accent">
-                  <Upload className="h-6 w-6 text-muted-foreground" />
-                  <span className="mt-2 text-sm font-medium">Click to choose a file</span>
-                  <span className="text-xs text-muted-foreground">PDF, JPG or PNG · up to 25 MB</span>
+                  {file ? (
+                    <>
+                      <FileText className="h-6 w-6 text-primary" />
+                      <span className="mt-2 text-sm font-semibold">{file.name}</span>
+                      <span className="text-xs text-muted-foreground">{formatBytes(file.size)} · ready to upload</span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-6 w-6 text-muted-foreground" />
+                      <span className="mt-2 text-sm font-medium">Click to choose a file</span>
+                      <span className="text-xs text-muted-foreground">PDF, JPG or PNG · up to 25 MB</span>
+                    </>
+                  )}
                   <input
                     id="report-file"
                     type="file"
@@ -364,29 +376,37 @@ export function RecordsExplorer({
             </DialogDescription>
           </DialogHeader>
           <div className="flex min-h-[280px] flex-col items-center justify-center rounded-xl border bg-muted/20 p-6">
-            {preview?.file_url ? (
-              preview.file_type?.startsWith("image/") ? (
+            {(() => {
+              const p = preview;
+              const fileUrl = p ? resolveRecordFileUrl(p.file_url) : null;
+              if (!p || !fileUrl) {
+                return (
+                  <div className="text-center">
+                    <Folder className="mx-auto h-12 w-12 text-muted-foreground/40" />
+                    <p className="mt-3 text-sm font-medium">No attached file</p>
+                    <p className="mt-1 max-w-xs text-xs text-muted-foreground">
+                      This record was created without a file.
+                    </p>
+                  </div>
+                );
+              }
+              return p.file_type?.startsWith("image/") ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={preview.file_url} alt={preview.title} className="max-h-[420px] rounded-lg object-contain" />
+                <img src={fileUrl} alt={p.title} className="max-h-[420px] rounded-lg object-contain" />
               ) : (
-                <iframe src={preview.file_url} className="h-[420px] w-full rounded-lg border" title={preview.title} />
-              )
-            ) : (
-              <div className="text-center">
-                <Folder className="mx-auto h-12 w-12 text-muted-foreground/40" />
-                <p className="mt-3 text-sm font-medium">No attached file</p>
-                <p className="mt-1 max-w-xs text-xs text-muted-foreground">
-                  This record was created without a file (demo mode). Connect Supabase storage to attach PDFs and images.
-                </p>
-              </div>
-            )}
+                <iframe src={fileUrl} className="h-[420px] w-full rounded-lg border" title={p.title} />
+              );
+            })()}
           </div>
           {preview?.description && (
             <p className="text-sm leading-relaxed text-muted-foreground">{preview.description}</p>
           )}
           {preview?.file_url && (
             <DialogFooter>
-              <Button variant="outline" onClick={() => window.open(preview.file_url!, "_blank")}>
+              <Button variant="outline" onClick={() => {
+                const url = resolveRecordFileUrl(preview!.file_url);
+                if (url) window.open(url, "_blank");
+              }}>
                 <Download className="h-4 w-4" /> Open file
               </Button>
             </DialogFooter>

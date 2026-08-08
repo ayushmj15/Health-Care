@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createAppointment, generateTimeSlots } from "@/lib/services/appointments";
+import { hospitalDirectionsUrl } from "@/lib/maps";
 import { appointmentSchema, type AppointmentInput } from "@/lib/validations";
 import { formatDate, formatTime } from "@/lib/utils";
 import type { Doctor, Hospital } from "@/types";
@@ -413,15 +414,7 @@ export function BookingFlow({
                   )}
                   {form.getValues("type") === "in-person" && (
                     <Button size="sm" variant="outline" asChild>
-                      <a
-                        href={
-                          selectedHospital.latitude != null && selectedHospital.longitude != null
-                            ? `https://www.google.com/maps/dir/?api=1&destination=${selectedHospital.latitude},${selectedHospital.longitude}`
-                            : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedHospital.name)}`
-                        }
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
+                      <a href={hospitalDirectionsUrl(selectedHospital)} target="_blank" rel="noopener noreferrer">
                         <Navigation className="h-3.5 w-3.5" /> Directions
                       </a>
                     </Button>

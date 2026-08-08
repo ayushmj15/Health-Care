@@ -7,6 +7,17 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 // Server-side reads live in "./records.server.ts".
 // ============================================================================
 
+const PUBLIC_RECORDS_BUCKET = "records";
+
+/** Absolute public URL for a stored file, given a full URL or a bucket path. */
+export function resolveRecordFileUrl(value: string | null | undefined): string | null {
+  if (!value) return null;
+  if (value.startsWith("http")) return value;
+  const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!base) return null;
+  return `${base}/storage/v1/object/public/${PUBLIC_RECORDS_BUCKET}/${value}`;
+}
+
 export interface NewReport {
   patient_id: string;
   title: string;
@@ -54,8 +65,8 @@ export async function deleteReport(reportId: string) {
 }
 
 /**
- * Upload a file to the `records` bucket under the user's folder.
- * Returns the storage path (empty string in demo mode).
+ * Upload a file to the public `records` bucket under the user's folder.
+ * Returns the full public URL of the uploaded file (empty string in demo mode).
  */
 export async function uploadRecordFile(userId: string, file: File): Promise<string> {
   if (!isSupabaseConfigured()) return "";
@@ -63,12 +74,13 @@ export async function uploadRecordFile(userId: string, file: File): Promise<stri
   const supabase = await createClient();
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
   const path = `${userId}/${Date.now()}_${safeName}`;
-  const { error } = await supabase.storage.from("records").upload(path, file, {
+  const { error } = await supabase.storage.from(PUBLIC_RECORDS_BUCKET).upload(path, file, {
     cacheControl: "3600",
     upsert: false,
   });
   if (error) throw new Error(error.message);
-  return path;
+  const url = resolveRecordFileUrl(path);
+  return url ?? "";
 }
 
 /** Build a public/signed URL for a stored record file. */
