@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AuthAwareButton } from "@/components/landing/auth-aware-button";
 import { InstallAppButton } from "@/components/pwa/install-app-button";
+import { PwaInstallBanner } from "@/components/pwa/pwa-install-banner";
 import { Logo } from "@/components/shared/logo";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -30,6 +31,7 @@ export function Navbar() {
         scrolled ? "glass-strong border-b" : "bg-transparent",
       )}
     >
+      <PwaInstallBanner />
       <nav className="container flex h-16 items-center justify-between">
         <Logo />
 
