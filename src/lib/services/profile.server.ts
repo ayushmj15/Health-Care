@@ -34,7 +34,7 @@ export async function getProfile(userId?: string): Promise<UserProfile | null> {
     };
     return profile as UserProfile;
   } catch {
-    return DEMO_USER;
+    return null;
   }
 }
 
@@ -48,6 +48,6 @@ export async function getEmergencyContacts(patientId: string): Promise<Emergency
     if (error) throw error;
     return (data ?? []) as EmergencyContact[];
   } catch {
-    return DEMO_EMERGENCY_CONTACTS;
+    return [];
   }
 }

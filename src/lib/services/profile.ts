@@ -56,49 +56,6 @@ export async function deleteEmergencyContact(contactId: string) {
   return true;
 }
 
-/**
- * Idempotently keep the profile form's emergency contact in sync with the
- * emergency_contacts table (the source used by SOS). Updates the row with the
- * same phone, or inserts a new one if none exists yet.
- */
-export async function syncEmergencyContact(
-  patientId: string,
-  contact: { name: string; relation?: string; phone: string; email?: string },
-) {
-  if (!isSupabaseConfigured()) return true;
-  const { createClient } = await import("@/lib/supabase/client");
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("emergency_contacts")
-    .select("id")
-    .eq("patient_id", patientId)
-    .eq("phone", contact.phone)
-    .limit(1);
-  if (data && data.length) {
-    const { error } = await supabase
-      .from("emergency_contacts")
-      .update({
-        name: contact.name,
-        relation: contact.relation ?? null,
-        email: contact.email ?? null,
-      })
-      .eq("id", data[0].id);
-    if (error) throw new Error(error.message);
-  } else {
-    const { error } = await supabase
-      .from("emergency_contacts")
-      .insert({
-        patient_id: patientId,
-        name: contact.name,
-        relation: contact.relation ?? null,
-        phone: contact.phone,
-        email: contact.email ?? null,
-      });
-    if (error) throw new Error(error.message);
-  }
-  return true;
-}
-
 /** Save settings. */
 export async function saveSettings(settings: UserProfile["settings"]) {
   if (!isSupabaseConfigured()) return true;

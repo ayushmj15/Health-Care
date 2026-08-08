@@ -27,7 +27,7 @@ export async function getAppointments(patientId: string, status?: string): Promi
     if (error) throw error;
     return (data ?? []) as Appointment[];
   } catch {
-    return filterDemo(status);
+    return [];
   }
 }
 

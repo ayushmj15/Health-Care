@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, Smartphone } from "lucide-react";
+import { Download, MonitorSmartphone, Smartphone } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button, type ButtonProps } from "@/components/ui/button";
 import {
@@ -17,20 +17,20 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 /**
- * Visible "Install app" button.
- * - Android/Chrome/Edge: fires the native install prompt (beforeinstallprompt).
- * - iOS Safari: shows a short "Share → Add to Home Screen" guide.
- * - Hidden once the app is already running from the home screen.
+ * Always-visible "Install app" button.
+ * - Chrome/Edge/Android: fires the native install prompt (beforeinstallprompt).
+ * - iOS Safari: shows a "Share → Add to Home Screen" guide.
+ * - Other browsers: shows generic add-to-home-screen instructions.
+ * - Hidden only when the app is already running from the home screen.
  */
 export function InstallAppButton({
   label = "Install app",
   ...props
 }: ButtonProps & { label?: string }) {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [supported, setSupported] = useState(false);
   const [isIos, setIsIos] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
-  const [showIosHelp, setShowIosHelp] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
 
   useEffect(() => {
     const standalone =
@@ -43,12 +43,10 @@ export function InstallAppButton({
       /iPad|iPhone|iPod/.test(navigator.userAgent) &&
       !(window as Window & { MSStream?: unknown }).MSStream;
     setIsIos(ios);
-    if (ios) setSupported(true);
 
     function onBeforeInstallPrompt(e: Event) {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setSupported(true);
     }
     window.addEventListener("beforeinstallprompt", onBeforeInstallPrompt);
     return () => window.removeEventListener("beforeinstallprompt", onBeforeInstallPrompt);
@@ -61,10 +59,12 @@ export function InstallAppButton({
       if (outcome === "accepted") setDeferredPrompt(null);
       return;
     }
-    if (isIos) setShowIosHelp(true);
+    setShowHelp(true);
   }
 
-  if (isStandalone || !supported) return null;
+  if (isStandalone) return null;
+
+  const isIosGuide = isIos && !deferredPrompt;
 
   return (
     <>
@@ -73,27 +73,50 @@ export function InstallAppButton({
         {label}
       </Button>
 
-      <Dialog open={showIosHelp} onOpenChange={setShowIosHelp}>
+      <Dialog open={showHelp} onOpenChange={setShowHelp}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Install Health Care on your phone</DialogTitle>
+            <DialogTitle>Install Health Care on your device</DialogTitle>
             <DialogDescription asChild>
               <div className="space-y-2">
-                <p>
-                  Health Care works like a native app once it&apos;s on your home screen — one tap to open, no browser
-                  needed.
-                </p>
-                <ol className="list-decimal space-y-1 pl-5 text-sm">
-                  <li>Tap the <strong>Share</strong> button in Safari.</li>
-                  <li>Scroll down and tap <strong>Add to Home Screen</strong>.</li>
-                  <li>Tap <strong>Add</strong> — done!</li>
-                </ol>
+                {isIosGuide ? (
+                  <ol className="list-decimal space-y-1 pl-5 text-sm">
+                    <li>
+                      Tap the <strong>Share</strong> button in Safari.
+                    </li>
+                    <li>
+                      Scroll down and tap <strong>Add to Home Screen</strong>.
+                    </li>
+                    <li>
+                      Tap <strong>Add</strong> — done! It opens like a native app.
+                    </li>
+                  </ol>
+                ) : (
+                  <ol className="list-decimal space-y-1 pl-5 text-sm">
+                    <li>
+                      Open your browser menu (the <strong>⋮</strong> icon) or the <strong>Share</strong> button.
+                    </li>
+                    <li>
+                      Tap <strong>Install app</strong> or <strong>Add to Home Screen</strong>.
+                    </li>
+                    <li>
+                      Done — it launches like a native app from your home screen.
+                    </li>
+                  </ol>
+                )}
               </div>
             </DialogDescription>
           </DialogHeader>
-          <Button className="w-full" onClick={() => setShowIosHelp(false)}>
-            Got it
-          </Button>
+          <div className="flex flex-col gap-2">
+            {!isIosGuide && (
+              <Button variant="outline" onClick={() => setShowHelp(false)}>
+                <MonitorSmartphone className="h-4 w-4" /> Continue in browser
+              </Button>
+            )}
+            <Button className="w-full" onClick={() => setShowHelp(false)}>
+              Got it
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </>

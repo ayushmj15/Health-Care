@@ -37,7 +37,7 @@ export async function getHospitals(filters: HospitalFilters = {}): Promise<Hospi
     if (error) throw error;
     return (data ?? []) as Hospital[];
   } catch {
-    return filterDemoHospitals(filters);
+    return [];
   }
 }
 
@@ -66,7 +66,7 @@ export async function getDoctors(filters: { hospitalId?: string; speciality?: st
     if (error) throw error;
     return (data ?? []) as Doctor[];
   } catch {
-    return filterDemoDoctors(filters);
+    return [];
   }
 }
 

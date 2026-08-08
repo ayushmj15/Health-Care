@@ -22,7 +22,7 @@ export async function getReports(patientId: string, category?: string, search?: 
     if (error) throw error;
     return (data ?? []) as Report[];
   } catch {
-    return filterDemoReports(category, search);
+    return [];
   }
 }
 
@@ -40,7 +40,7 @@ export async function getPrescriptions(patientId: string): Promise<Prescription[
     if (error) throw error;
     return (data ?? []) as Prescription[];
   } catch {
-    return DEMO_PRESCRIPTIONS;
+    return [];
   }
 }
 

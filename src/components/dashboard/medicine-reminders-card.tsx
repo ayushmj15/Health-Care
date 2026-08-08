@@ -29,9 +29,9 @@ export function MedicineRemindersCard({ reminders: initial }: { reminders: Remin
     <Card>
       <CardHeader className="flex-row items-center justify-between space-y-0">
         <CardTitle className="text-base">Medicine reminders</CardTitle>
-        <Link href="/dashboard/medicines" className="text-xs font-medium text-primary hover:underline">
-          Manage
-        </Link>
+        <Button size="sm" variant="outline" asChild>
+          <Link href="/dashboard/medicines">Manage</Link>
+        </Button>
       </CardHeader>
       <CardContent className="space-y-3">
         {todays.length === 0 && (

@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { updateProfile, syncEmergencyContact } from "@/lib/services/profile";
+import { updateProfile } from "@/lib/services/profile";
 import { profileSchema, type ProfileInput } from "@/lib/validations";
 import { BLOOD_GROUPS, GENDERS } from "@/lib/constants";
 import type { UserProfile } from "@/types";
@@ -40,9 +40,6 @@ export function ProfileForm({ user, onSaved }: { user: UserProfile; onSaved?: (u
       heightCm: user.height_cm ?? undefined,
       weightKg: user.weight_kg ?? undefined,
       address: user.address ?? "",
-      emergencyName: user.emergency_contact?.name ?? "",
-      emergencyRelation: user.emergency_contact?.relation ?? "",
-      emergencyPhone: user.emergency_contact?.phone ?? "",
     },
   });
 
@@ -61,19 +58,7 @@ export function ProfileForm({ user, onSaved }: { user: UserProfile; onSaved?: (u
         chronic_diseases: chronic,
         allergies,
         address: values.address || null,
-        emergency_contact: {
-          name: values.emergencyName || undefined,
-          relation: values.emergencyRelation || undefined,
-          phone: values.emergencyPhone || undefined,
-        },
       });
-      if (values.emergencyPhone) {
-        await syncEmergencyContact(user.id, {
-          name: values.emergencyName || "Emergency contact",
-          relation: values.emergencyRelation || undefined,
-          phone: values.emergencyPhone,
-        });
-      }
       toast.success("Profile updated successfully.");
       onSaved?.(updated);
     } catch (err) {
@@ -281,51 +266,6 @@ export function ProfileForm({ user, onSaved }: { user: UserProfile; onSaved?: (u
               </FormItem>
             )}
           />
-        </section>
-
-        {/* Emergency contact */}
-        <section className="space-y-4">
-          <h2 className="flex items-center gap-2 text-base font-semibold">
-            Emergency contact <span className="text-xs font-normal text-muted-foreground">(used during SOS)</span>
-          </h2>
-          <div className="grid gap-4 sm:grid-cols-3">
-            <FormField
-              control={form.control}
-              name="emergencyName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Sarah Johnson" {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="emergencyRelation"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Relation</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Wife" {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="emergencyPhone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Phone</FormLabel>
-                  <FormControl>
-                    <Input placeholder="+91 98765 43210" {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-          </div>
         </section>
 
         <Button type="submit" disabled={saving}>

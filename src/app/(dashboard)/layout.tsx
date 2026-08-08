@@ -27,7 +27,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     <DashboardShell
       user={profile}
       isDemo={isDemo}
-      onboardingRequired={!onboardingComplete(profile, contacts.length)}
+      onboardingRequired={profile ? !onboardingComplete(profile, contacts.length) : false}
     >
       {children}
     </DashboardShell>

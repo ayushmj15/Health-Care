@@ -89,9 +89,6 @@ export const profileSchema = z.object({
   chronicDiseases: z.array(z.string()).optional(),
   allergies: z.array(z.string()).optional(),
   address: z.string().optional(),
-  emergencyName: z.string().optional(),
-  emergencyRelation: z.string().optional(),
-  emergencyPhone: z.string().optional(),
 });
 
 export const emergencyContactSchema = z.object({

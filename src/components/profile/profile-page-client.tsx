@@ -2,8 +2,10 @@
 
 import { ArrowRight, Check, Circle } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ProfileForm } from "@/components/profile/profile-form";
+import { EmergencyContactsSection } from "@/components/profile/emergency-contacts-section";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -33,23 +35,37 @@ export function ProfilePageClient({
   user: UserProfile;
   contacts: EmergencyContact[];
 }) {
+  const router = useRouter();
   const [profile, setProfile] = useState(user);
-  const [contactCount, setContactCount] = useState(contacts.length);
-  const [justSaved, setJustSaved] = useState(false);
+  const [contactList, setContactList] = useState<EmergencyContact[]>(contacts);
+  const [redirecting, setRedirecting] = useState(false);
 
   const personalDone = isProfileComplete(profile);
-  const emergencyDone = contactCount > 0 || Boolean(profile.emergency_contact?.phone);
+  const emergencyDone = contactList.length > 0 || Boolean(profile.emergency_contact?.phone);
   const allDone = personalDone && emergencyDone;
+
+  async function refreshContacts() {
+    try {
+      const list = await getEmergencyContacts(user.id);
+      setContactList(list);
+      return list.length;
+    } catch {
+      return contactList.length;
+    }
+  }
 
   async function handleSaved(saved: UserProfile | null) {
     if (saved) setProfile(saved);
-    try {
-      const list = await getEmergencyContacts(user.id);
-      setContactCount(list.length);
-    } catch {
-      // demo mode — ignore
+    const count = await refreshContacts();
+    const complete = isProfileComplete(saved ?? profile) && (count > 0 || Boolean((saved ?? profile).emergency_contact?.phone));
+    if (complete) {
+      setRedirecting(true);
+      setTimeout(() => router.push("/dashboard"), 900);
     }
-    setJustSaved(true);
+  }
+
+  function handleContactsChange(list: EmergencyContact[]) {
+    setContactList(list);
   }
 
   return (
@@ -74,7 +90,7 @@ export function ProfilePageClient({
           </div>
           <ul className="mt-4 space-y-2">
             <ChecklistItem done={personalDone} label="Personal details — name, gender, date of birth, blood group & phone" />
-            <ChecklistItem done={emergencyDone} label="Emergency contact (used for SOS alerts)" />
+            <ChecklistItem done={emergencyDone} label="At least one emergency contact (used for SOS alerts)" />
           </ul>
           {allDone && (
             <Button size="sm" asChild className="mt-4">
@@ -83,9 +99,9 @@ export function ProfilePageClient({
               </Link>
             </Button>
           )}
-          {justSaved && !allDone && (
-            <p className="mt-3 text-xs text-amber-600 dark:text-amber-400">
-              Saved — a few fields are still missing. Finish them and the app unlocks automatically.
+          {redirecting && (
+            <p className="mt-3 text-xs text-emerald-600 dark:text-emerald-400">
+              Profile complete — taking you to the dashboard…
             </p>
           )}
         </CardContent>
@@ -117,6 +133,12 @@ export function ProfilePageClient({
       <Card>
         <CardContent className="p-6">
           <ProfileForm user={profile} onSaved={handleSaved} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-6">
+          <EmergencyContactsSection patientId={user.id} initial={contactList} onChange={handleContactsChange} />
         </CardContent>
       </Card>
     </div>

@@ -21,7 +21,7 @@ export async function getMedicines(patientId: string): Promise<Medicine[]> {
     if (error) throw error;
     return (data ?? []) as Medicine[];
   } catch {
-    return DEMO_MEDICINES;
+    return [];
   }
 }
 
@@ -40,6 +40,6 @@ export async function getReminders(patientId: string): Promise<Reminder[]> {
     if (error) throw error;
     return (data ?? []) as Reminder[];
   } catch {
-    return DEMO_REMINDERS;
+    return [];
   }
 }

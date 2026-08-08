@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { AppProviders } from "@/providers/app-providers";
 import { Toaster } from "@/components/ui/sonner";
+import { PwaRegister } from "@/components/pwa/pwa-register";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -27,6 +28,12 @@ export const metadata: Metadata = {
     icon: [{ url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
     apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Health Care",
+  },
 };
 
 export const viewport: Viewport = {
@@ -42,6 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${inter.variable} font-sans min-h-screen`}>
         <AppProviders>{children}</AppProviders>
         <Toaster />
+        <PwaRegister />
       </body>
     </html>
   );
