@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { AuthAwareButton } from "@/components/landing/auth-aware-button";
+import { InstallAppButton } from "@/components/pwa/install-app-button";
 import { Logo } from "@/components/shared/logo";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -44,13 +46,14 @@ export function Navbar() {
         </div>
 
         <div className="hidden items-center gap-2 md:flex">
+          <InstallAppButton variant="outline" size="sm" />
           <ThemeToggle />
-          <Button variant="ghost" asChild>
-            <Link href="/login">Log in</Link>
-          </Button>
-          <Button asChild>
-            <Link href="/signup">Get started</Link>
-          </Button>
+          <AuthAwareButton href="/login" loggedInLabel="Dashboard" variant="ghost">
+            Log in
+          </AuthAwareButton>
+          <AuthAwareButton href="/signup" loggedInLabel="Dashboard">
+            Get started
+          </AuthAwareButton>
         </div>
 
         <div className="flex items-center gap-2 md:hidden">
@@ -78,13 +81,16 @@ export function Navbar() {
                 {link.label}
               </Link>
             ))}
-            <div className="mt-2 flex gap-2 border-t pt-4">
-              <Button variant="outline" asChild className="flex-1">
-                <Link href="/login">Log in</Link>
-              </Button>
-              <Button asChild className="flex-1">
-                <Link href="/signup">Get started</Link>
-              </Button>
+            <div className="mt-2 flex flex-col gap-2 border-t pt-4">
+              <InstallAppButton className="w-full" />
+              <div className="flex gap-2">
+                <AuthAwareButton href="/login" loggedInLabel="Dashboard" variant="outline" className="flex-1">
+                  Log in
+                </AuthAwareButton>
+                <AuthAwareButton href="/signup" loggedInLabel="Dashboard" className="flex-1">
+                  Get started
+                </AuthAwareButton>
+              </div>
             </div>
           </div>
         </motion.div>

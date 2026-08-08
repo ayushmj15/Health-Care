@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
-import { getProfile } from "@/lib/services/profile.server";
+import { getProfile, getEmergencyContacts } from "@/lib/services/profile.server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { onboardingComplete } from "@/lib/profile-utils";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { isDemo } from "@/lib/demo-helpers";
 
@@ -20,9 +21,14 @@ export default async function DashboardLayout({ children }: { children: React.Re
   }
 
   const profile = await getProfile();
+  const contacts = profile ? await getEmergencyContacts(profile.id) : [];
 
   return (
-    <DashboardShell user={profile} isDemo={isDemo}>
+    <DashboardShell
+      user={profile}
+      isDemo={isDemo}
+      onboardingRequired={!onboardingComplete(profile, contacts.length)}
+    >
       {children}
     </DashboardShell>
   );

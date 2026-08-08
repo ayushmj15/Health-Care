@@ -18,12 +18,12 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { updateProfile } from "@/lib/services/profile";
+import { updateProfile, syncEmergencyContact } from "@/lib/services/profile";
 import { profileSchema, type ProfileInput } from "@/lib/validations";
 import { BLOOD_GROUPS, GENDERS } from "@/lib/constants";
 import type { UserProfile } from "@/types";
 
-export function ProfileForm({ user }: { user: UserProfile }) {
+export function ProfileForm({ user, onSaved }: { user: UserProfile; onSaved?: (updated: UserProfile | null) => void }) {
   const [saving, setSaving] = useState(false);
   const [chronic, setChronic] = useState<string[]>(user.chronic_diseases);
   const [allergies, setAllergies] = useState<string[]>(user.allergies);
@@ -49,7 +49,7 @@ export function ProfileForm({ user }: { user: UserProfile }) {
   async function onSubmit(values: ProfileInput) {
     setSaving(true);
     try {
-      await updateProfile({
+      const updated = await updateProfile({
         id: user.id,
         full_name: values.fullName,
         phone: values.phone || null,
@@ -67,7 +67,15 @@ export function ProfileForm({ user }: { user: UserProfile }) {
           phone: values.emergencyPhone || undefined,
         },
       });
+      if (values.emergencyPhone) {
+        await syncEmergencyContact(user.id, {
+          name: values.emergencyName || "Emergency contact",
+          relation: values.emergencyRelation || undefined,
+          phone: values.emergencyPhone,
+        });
+      }
       toast.success("Profile updated successfully.");
+      onSaved?.(updated);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not update profile.");
     } finally {

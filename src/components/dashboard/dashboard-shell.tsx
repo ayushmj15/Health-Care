@@ -1,9 +1,12 @@
 "use client";
 
 import { Menu } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { DemoModeBanner } from "@/components/shared/demo-banner";
+import { InstallAppButton } from "@/components/pwa/install-app-button";
 import { PwaInstallBanner } from "@/components/pwa/pwa-install-banner";
+import { OnboardingGate } from "@/components/dashboard/onboarding-gate";
 import { Logo } from "@/components/shared/logo";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { NotificationsDropdown, UserMenu } from "@/components/dashboard/user-menu";
@@ -18,16 +21,21 @@ import type { UserProfile } from "@/types";
 export function DashboardShell({
   user,
   isDemo,
+  onboardingRequired,
   children,
 }: {
   user: UserProfile | null;
   isDemo: boolean;
+  onboardingRequired?: boolean;
   children: React.ReactNode;
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const pathname = usePathname();
 
   const displayName = user?.full_name ?? (user?.email?.split("@")[0] ?? "Guest");
   const isAdmin = user?.role === "admin";
+  const isOnboardingPath = pathname === "/dashboard/profile" || pathname === "/dashboard/emergency";
+  const gated = Boolean(onboardingRequired) && !isOnboardingPath;
 
   return (
     <UserProvider value={{ user, isDemo, setUser: () => {} }}>
@@ -96,6 +104,7 @@ export function DashboardShell({
                 </div>
               </div>
               <div className="flex items-center gap-1.5">
+                <InstallAppButton variant="ghost" size="iconSm" label="" aria-label="Install app" />
                 <ThemeToggle />
                 {user && <NotificationsDropdown userId={user.id} />}
                 {user && (
@@ -110,7 +119,7 @@ export function DashboardShell({
               </div>
             </header>
 
-            <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">{children}</main>
+            <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">{gated ? <OnboardingGate /> : children}</main>
 
             <footer className="border-t px-6 py-4 text-center text-xs text-muted-foreground">
               Health Care · AI guidance is informational only and not a substitute for professional medical advice.

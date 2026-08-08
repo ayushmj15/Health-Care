@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { ArrowRight, Bot, CalendarHeart, HeartPulse, ShieldCheck } from "lucide-react";
 import Link from "next/link";
+import { AuthAwareButton } from "@/components/landing/auth-aware-button";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -78,11 +79,9 @@ export function Hero() {
             transition={{ duration: 0.7, delay: 0.3 }}
             className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row"
           >
-            <Button size="xl" className="w-full sm:w-auto" asChild>
-              <Link href="/signup">
-                Get started free <ArrowRight className="ml-1 h-4 w-4" />
-              </Link>
-            </Button>
+            <AuthAwareButton href="/signup" loggedInLabel="Open dashboard" size="xl" className="w-full sm:w-auto">
+              Get started free <ArrowRight className="ml-1 h-4 w-4" />
+            </AuthAwareButton>
             <Button size="xl" variant="outline" className="w-full sm:w-auto" asChild>
               <Link href="/dashboard">Explore the demo</Link>
             </Button>

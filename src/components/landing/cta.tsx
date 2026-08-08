@@ -2,8 +2,7 @@
 
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { AuthAwareButton } from "@/components/landing/auth-aware-button";
 
 export function Cta() {
   return (
@@ -27,19 +26,22 @@ export function Cta() {
             Join 120,000+ people who manage their health smarter with Health Care. Free forever.
           </p>
           <div className="relative mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Button size="xl" className="w-full bg-white text-primary hover:bg-white/90 sm:w-auto" asChild>
-              <Link href="/signup">
-                Create free account <ArrowRight className="ml-1 h-4 w-4" />
-              </Link>
-            </Button>
-            <Button
+            <AuthAwareButton
+              href="/signup"
+              loggedInLabel="Open dashboard"
+              size="xl"
+              className="w-full bg-white text-primary hover:bg-white/90 sm:w-auto"
+            >
+              Create free account <ArrowRight className="ml-1 h-4 w-4" />
+            </AuthAwareButton>
+            <AuthAwareButton
+              href="/login"
               size="xl"
               variant="outline"
               className="w-full border-white/40 bg-white/10 text-white backdrop-blur hover:bg-white/20 sm:w-auto"
-              asChild
             >
-              <Link href="/login">Log in</Link>
-            </Button>
+              Log in
+            </AuthAwareButton>
           </div>
         </motion.div>
       </div>
