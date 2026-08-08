@@ -109,13 +109,13 @@ export function Hero() {
               <div className="rounded-2xl bg-background/95 p-4 backdrop-blur">
                 <div className="grid grid-cols-3 gap-3">
                   {[
-                    { label: "Upcoming", value: "2 visits", color: "text-primary" },
-                    { label: "Reports", value: "6 files", color: "text-teal" },
-                    { label: "Medicines", value: "3 active", color: "text-emerald-500" },
+                    { label: "Appointments", icon: "📅" },
+                    { label: "Health records", icon: "📄" },
+                    { label: "Reminders", icon: "💊" },
                   ].map((s) => (
                     <div key={s.label} className="rounded-xl border bg-muted/30 p-4 text-left">
-                      <p className="text-xs text-muted-foreground">{s.label}</p>
-                      <p className={cn("mt-1 text-xl font-bold", s.color)}>{s.value}</p>
+                      <p className="text-xl">{s.icon}</p>
+                      <p className="mt-1 text-xs font-medium text-muted-foreground">{s.label}</p>
                     </div>
                   ))}
                 </div>

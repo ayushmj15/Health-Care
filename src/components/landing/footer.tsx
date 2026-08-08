@@ -1,6 +1,5 @@
 import { HeartPulse } from "lucide-react";
 import Link from "next/link";
-import { InstallAppButton } from "@/components/pwa/install-app-button";
 import { Logo } from "@/components/shared/logo";
 
 const COLUMNS = [
@@ -73,7 +72,6 @@ export function Footer() {
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t pt-6 sm:flex-row">
           <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} Health Care. All rights reserved.</p>
           <div className="flex items-center gap-4">
-            <InstallAppButton size="sm" variant="outline" label="Install on your phone" />
             <p className="text-xs text-muted-foreground">Made with 💙 for healthier lives</p>
           </div>
         </div>

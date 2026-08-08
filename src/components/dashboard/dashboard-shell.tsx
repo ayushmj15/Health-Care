@@ -4,8 +4,6 @@ import { Menu } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { DemoModeBanner } from "@/components/shared/demo-banner";
-import { InstallAppButton } from "@/components/pwa/install-app-button";
-import { PwaInstallBanner } from "@/components/pwa/pwa-install-banner";
 import { OnboardingGate } from "@/components/dashboard/onboarding-gate";
 import { Logo } from "@/components/shared/logo";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
@@ -42,7 +40,6 @@ export function DashboardShell({
     <UserProvider value={{ user, isDemo, setUser: () => {} }}>
       <TooltipProvider delayDuration={200}>
         <div className="min-h-screen">
-          <PwaInstallBanner />
           <DemoModeBanner />
 
           {/* Desktop sidebar */}
@@ -105,7 +102,6 @@ export function DashboardShell({
                 </div>
               </div>
               <div className="flex items-center gap-1.5">
-                <InstallAppButton variant="ghost" size="iconSm" label="" aria-label="Install app" />
                 <ThemeToggle />
                 {user && <NotificationsDropdown userId={user.id} />}
                 {user && (
