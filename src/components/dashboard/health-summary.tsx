@@ -1,6 +1,10 @@
+"use client";
+
+import { motion } from "framer-motion";
 import { Activity, Droplets, HeartPulse, Ruler, Weight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { AnimatedCounter } from "@/components/shared/motion";
 import type { UserProfile } from "@/types";
 
 function bmi(heightCm: number | null, weightKg: number | null): number | null {
@@ -21,27 +25,50 @@ export function HealthSummary({ user }: { user: UserProfile }) {
   const cat = value ? bmiCategory(value) : null;
 
   const metrics = [
-    { icon: Activity, label: "Blood group", value: user.blood_group ?? "—" },
-    { icon: HeartPulse, label: "Blood pressure", value: user.chronic_diseases.includes("Hypertension") ? "Monitored" : "Normal range" },
-    { icon: Ruler, label: "Height", value: user.height_cm ? `${user.height_cm} cm` : "—" },
-    { icon: Weight, label: "Weight", value: user.weight_kg ? `${user.weight_kg} kg` : "—" },
-    { icon: Droplets, label: "BMI", value: value ? value.toFixed(1) : "—" },
+    { icon: Activity, label: "Blood group", value: user.blood_group ?? "—", isNumber: false },
+    { icon: HeartPulse, label: "Blood pressure", value: user.chronic_diseases.includes("Hypertension") ? "Monitored" : "Normal range", isNumber: false },
+    { icon: Ruler, label: "Height", value: user.height_cm ? `${user.height_cm} cm` : "—", numValue: user.height_cm, suffix: " cm", isNumber: !!user.height_cm },
+    { icon: Weight, label: "Weight", value: user.weight_kg ? `${user.weight_kg} kg` : "—", numValue: user.weight_kg, suffix: " kg", isNumber: !!user.weight_kg },
+    { icon: Droplets, label: "BMI", value: value ? value.toFixed(1) : "—", numValue: value, suffix: "", isNumber: !!value },
   ];
 
   return (
-    <Card>
+    <Card elevated>
       <CardHeader className="flex-row items-center justify-between space-y-0">
         <CardTitle className="text-base">Health summary</CardTitle>
-        {cat && <Badge variant={cat.variant}>{cat.label}</Badge>}
+        {cat && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ type: "spring", stiffness: 200, damping: 15 }}
+          >
+            <Badge variant={cat.variant}>{cat.label}</Badge>
+          </motion.div>
+        )}
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {metrics.map((m) => (
-            <div key={m.label} className="rounded-xl border bg-muted/20 p-3">
+          {metrics.map((m, i) => (
+            <motion.div
+              key={m.label}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.06, type: "spring", stiffness: 200, damping: 20 }}
+              className="rounded-xl border bg-muted/20 p-3 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5"
+            >
               <m.icon className="h-4 w-4 text-primary" />
               <p className="mt-2 text-[11px] text-muted-foreground">{m.label}</p>
-              <p className="text-sm font-semibold">{m.value}</p>
-            </div>
+              {m.isNumber && m.numValue ? (
+                <AnimatedCounter
+                  value={m.numValue}
+                  suffix={m.suffix ?? ""}
+                  className="text-sm font-semibold"
+                  duration={1}
+                />
+              ) : (
+                <p className="text-sm font-semibold">{m.value}</p>
+              )}
+            </motion.div>
           ))}
         </div>
 

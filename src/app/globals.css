@@ -26,6 +26,21 @@
     --teal: 178 100% 34%;
     --teal-foreground: 210 40% 98%;
     --radius: 0.9rem;
+
+    /* 3D & depth tokens */
+    --shadow-color: 217 30% 50%;
+    --shadow-elevation-low:
+      0 1px 2px hsl(var(--shadow-color) / 0.06),
+      0 2px 4px hsl(var(--shadow-color) / 0.06);
+    --shadow-elevation-medium:
+      0 2px 4px hsl(var(--shadow-color) / 0.05),
+      0 4px 8px hsl(var(--shadow-color) / 0.05),
+      0 8px 16px hsl(var(--shadow-color) / 0.05);
+    --shadow-elevation-high:
+      0 4px 8px hsl(var(--shadow-color) / 0.04),
+      0 8px 16px hsl(var(--shadow-color) / 0.04),
+      0 16px 32px hsl(var(--shadow-color) / 0.04),
+      0 32px 64px hsl(var(--shadow-color) / 0.04);
   }
 
   .dark {
@@ -50,6 +65,21 @@
     --ring: 217 91% 60%;
     --teal: 178 90% 46%;
     --teal-foreground: 222 47% 7%;
+
+    /* 3D & depth tokens — dark */
+    --shadow-color: 222 50% 3%;
+    --shadow-elevation-low:
+      0 1px 2px hsl(var(--shadow-color) / 0.2),
+      0 2px 4px hsl(var(--shadow-color) / 0.2);
+    --shadow-elevation-medium:
+      0 2px 4px hsl(var(--shadow-color) / 0.15),
+      0 4px 8px hsl(var(--shadow-color) / 0.15),
+      0 8px 16px hsl(var(--shadow-color) / 0.15);
+    --shadow-elevation-high:
+      0 4px 8px hsl(var(--shadow-color) / 0.12),
+      0 8px 16px hsl(var(--shadow-color) / 0.12),
+      0 16px 32px hsl(var(--shadow-color) / 0.12),
+      0 32px 64px hsl(var(--shadow-color) / 0.12);
   }
 }
 
@@ -60,10 +90,22 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
+    /* Native PWA feel */
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    overscroll-behavior-y: contain;
+  }
+  /* Safe area padding for notched phones */
+  html {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
 }
 
 @layer utilities {
+  /* ── Glassmorphism ── */
   .glass {
     @apply bg-white/70 backdrop-blur-xl dark:bg-slate-900/60;
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.06);
@@ -72,9 +114,19 @@
     @apply bg-white/80 backdrop-blur-2xl dark:bg-slate-900/80;
     box-shadow: 0 8px 40px rgba(0, 0, 0, 0.08);
   }
+  .glass-frosted {
+    @apply bg-white/60 backdrop-blur-3xl dark:bg-slate-900/50;
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+
+  /* ── Gradients ── */
   .text-gradient {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-primary via-sky-500 to-teal-500;
   }
+
+  /* ── Background patterns ── */
   .bg-grid {
     background-image:
       linear-gradient(to right, hsl(var(--border) / 0.5) 1px, transparent 1px),
@@ -85,6 +137,136 @@
     background-image: radial-gradient(hsl(var(--border) / 0.6) 1px, transparent 1px);
     background-size: 24px 24px;
   }
+
+  /* ── 3D Card System ── */
+  .perspective {
+    perspective: 1000px;
+  }
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+  .card-3d {
+    @apply relative transition-all duration-300;
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+  .card-3d:hover {
+    box-shadow: var(--shadow-elevation-high);
+  }
+  .card-3d-subtle {
+    @apply card-3d;
+    --tilt-max: 4deg;
+  }
+  .card-3d-medium {
+    @apply card-3d;
+    --tilt-max: 8deg;
+  }
+  .card-3d-dramatic {
+    @apply card-3d;
+    --tilt-max: 12deg;
+  }
+
+  /* ── Neumorphic depth ── */
+  .shadow-3d {
+    box-shadow: var(--shadow-elevation-medium);
+  }
+  .shadow-3d-hover {
+    box-shadow: var(--shadow-elevation-high);
+  }
+  .shadow-float {
+    box-shadow:
+      0 4px 6px -1px hsl(var(--shadow-color) / 0.08),
+      0 10px 20px -2px hsl(var(--shadow-color) / 0.06),
+      0 20px 40px -4px hsl(var(--shadow-color) / 0.04);
+  }
+  .shadow-glow-primary {
+    box-shadow:
+      0 0 16px hsl(var(--primary) / 0.15),
+      0 0 32px hsl(var(--primary) / 0.1),
+      0 4px 12px hsl(var(--shadow-color) / 0.1);
+  }
+  .shadow-glow-teal {
+    box-shadow:
+      0 0 16px hsl(var(--teal) / 0.15),
+      0 0 32px hsl(var(--teal) / 0.1),
+      0 4px 12px hsl(var(--shadow-color) / 0.1);
+  }
+
+  /* Inner highlight for glassmorphic cards (light reflection) */
+  .inner-highlight::before {
+    content: "";
+    @apply pointer-events-none absolute inset-0 rounded-[inherit];
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.12) 0%,
+      rgba(255, 255, 255, 0) 50%,
+      rgba(0, 0, 0, 0.02) 100%
+    );
+  }
+
+  /* ── Animated gradient border ── */
+  .border-glow {
+    position: relative;
+    background-clip: padding-box;
+  }
+  .border-glow::before {
+    content: "";
+    @apply pointer-events-none absolute -inset-[1px] rounded-[inherit] -z-10;
+    background: conic-gradient(
+      from var(--glow-angle, 0deg),
+      hsl(var(--primary)),
+      hsl(var(--teal)),
+      hsl(217 91% 70%),
+      hsl(var(--primary))
+    );
+    animation: glow-spin 4s linear infinite;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .border-glow:hover::before,
+  .border-glow:focus-within::before {
+    opacity: 1;
+  }
+
+  /* ── Touch ripple ── */
+  .touch-ripple {
+    @apply relative overflow-hidden;
+  }
+  .touch-ripple::after {
+    content: "";
+    @apply absolute inset-0 rounded-[inherit];
+    background: radial-gradient(circle, hsl(var(--primary) / 0.15) 10%, transparent 10.01%);
+    background-repeat: no-repeat;
+    background-position: 50%;
+    transform: scale(10);
+    opacity: 0;
+    transition: transform 0.5s, opacity 0.6s;
+  }
+  .touch-ripple:active::after {
+    transform: scale(0);
+    opacity: 1;
+    transition: 0s;
+  }
+
+  /* ── Shimmer wave loading ── */
+  .shimmer-wave {
+    @apply relative overflow-hidden;
+  }
+  .shimmer-wave::after {
+    content: "";
+    @apply absolute inset-0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      hsl(var(--primary) / 0.06) 20%,
+      hsl(var(--primary) / 0.12) 50%,
+      hsl(var(--primary) / 0.06) 80%,
+      transparent 100%
+    );
+    animation: shimmer-wave 2s ease-in-out infinite;
+  }
+
+  /* ── Scrollbar ── */
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
@@ -95,6 +277,97 @@
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
+
+  /* ── Safe area helpers ── */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .mb-safe {
+    margin-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+}
+
+/* ── Keyframe animations ── */
+@keyframes glow-spin {
+  to {
+    --glow-angle: 360deg;
+  }
+}
+
+@keyframes shimmer-wave {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes ripple-expand {
+  0% {
+    transform: scale(0);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+@keyframes breathing-glow {
+  0%, 100% {
+    box-shadow:
+      0 0 12px hsl(var(--primary) / 0.2),
+      0 0 24px hsl(var(--primary) / 0.1);
+  }
+  50% {
+    box-shadow:
+      0 0 20px hsl(var(--primary) / 0.35),
+      0 0 40px hsl(var(--primary) / 0.15);
+  }
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes wave-hand {
+  0% { transform: rotate(0deg); }
+  10% { transform: rotate(14deg); }
+  20% { transform: rotate(-8deg); }
+  30% { transform: rotate(14deg); }
+  40% { transform: rotate(-4deg); }
+  50% { transform: rotate(10deg); }
+  60% { transform: rotate(0deg); }
+  100% { transform: rotate(0deg); }
+}
+
+@keyframes pulse-ring-expand {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+@property --glow-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
 }
 
 ::selection {
@@ -115,4 +388,13 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground) / 0.6);
+}
+
+/* Standalone PWA adjustments */
+@media (display-mode: standalone) {
+  body {
+    overscroll-behavior: none;
+    -webkit-user-select: none;
+    user-select: text;
+  }
 }

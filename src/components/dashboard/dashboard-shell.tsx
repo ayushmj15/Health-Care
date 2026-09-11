@@ -10,6 +10,7 @@ import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { NotificationsDropdown, UserMenu } from "@/components/dashboard/user-menu";
 import { SidebarNav } from "@/components/dashboard/sidebar-nav";
 import { AiAssistantFab } from "@/components/dashboard/ai-assistant-fab";
+import { BottomTabBar } from "@/components/dashboard/bottom-tab-bar";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -78,6 +79,7 @@ export function DashboardShell({
             {/* Top bar */}
             <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background/80 px-4 backdrop-blur-xl sm:px-6">
               <div className="flex items-center gap-2">
+                {/* Mobile hamburger — only on large screens that don't have bottom tab (keeping for edge cases), hidden on mobile now */}
                 <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
                   <SheetTrigger asChild>
                     <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Open menu">
@@ -116,12 +118,18 @@ export function DashboardShell({
               </div>
             </header>
 
-            <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">{gated ? <OnboardingGate /> : children}</main>
+            {/* Main content — bottom padding for tab bar on mobile */}
+            <main className="flex-1 px-4 py-6 pb-24 sm:px-6 lg:px-8 lg:pb-6">
+              {gated ? <OnboardingGate /> : children}
+            </main>
 
-            <footer className="border-t px-6 py-4 text-center text-xs text-muted-foreground">
+            <footer className="hidden border-t px-6 py-4 text-center text-xs text-muted-foreground lg:block">
               Health Care · AI guidance is informational only and not a substitute for professional medical advice.
             </footer>
           </div>
+
+          {/* Bottom tab bar — mobile only */}
+          <BottomTabBar />
 
           <AiAssistantFab />
         </div>
