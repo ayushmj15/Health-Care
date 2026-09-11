@@ -7,10 +7,12 @@ import { Testimonials } from "@/components/landing/testimonials";
 import { Faq } from "@/components/landing/faq";
 import { Cta } from "@/components/landing/cta";
 import { Footer } from "@/components/landing/footer";
+import { MobileInstallRedirect } from "@/components/pwa/mobile-install-redirect";
 
 export default function LandingPage() {
   return (
     <>
+      <MobileInstallRedirect />
       <Navbar />
       <main>
         <Hero />
