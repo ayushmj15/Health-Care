@@ -114,14 +114,61 @@ export async function getAdminList(
 
   const { createClient } = await import("@/lib/supabase/server");
   const supabase = await createClient();
+
+  const from = (page - 1) * perPage;
+
+  // Users: select patient-facing columns, joined = created_at, and attach the
+  // patient's appointment count from a single aggregate query.
+  if (table === "users") {
+    let query = supabase.from("users").select("*", { count: "exact" });
+    if (search) query = query.ilike("full_name", `%${search}%`);
+    const { data, count, error } = await query.range(from, from + perPage - 1).order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+
+    const rows = (data ?? []) as {
+      id: string;
+      full_name: string | null;
+      email: string;
+      phone: string | null;
+      blood_group: string | null;
+      role: string;
+      created_at: string;
+    }[];
+
+    const appointmentCounts = new Map<string, number>();
+    try {
+      const { data: appts, error: apptErr } = await supabase
+        .from("appointments")
+        .select("patient_id");
+      if (!apptErr) {
+        (appts ?? []).forEach((a) =>
+          appointmentCounts.set(a.patient_id, (appointmentCounts.get(a.patient_id) ?? 0) + 1),
+        );
+      }
+    } catch {
+      // ignore — appointment counts stay 0 if this fails
+    }
+
+    const patients = rows.map((u) => ({
+      id: u.id,
+      full_name: u.full_name ?? u.email,
+      email: u.email,
+      phone: u.phone,
+      blood_group: u.blood_group,
+      appointments: appointmentCounts.get(u.id) ?? 0,
+      joined: u.created_at,
+      status: "active",
+    }));
+
+    return { rows: patients, total: count ?? 0 };
+  }
+
   let query = supabase.from(table).select("*", { count: "exact" });
   if (table === "appointments") query = supabase.from(table).select("*, doctor:doctors(*), hospital:hospitals(*), patient:users(*)", { count: "exact" });
   if (search && table === "hospitals") query = query.ilike("name", `%${search}%`);
   if (search && table === "doctors") query = query.ilike("name", `%${search}%`);
-  if (search && table === "users") query = query.ilike("full_name", `%${search}%`);
   if (search && table === "appointments") query = query.or(`status.ilike.%${search}%`);
 
-  const from = (page - 1) * perPage;
   const { data, count, error } = await query.range(from, from + perPage - 1).order("created_at", { ascending: false });
   if (error) throw new Error(error.message);
   return { rows: data ?? [], total: count ?? 0 };
