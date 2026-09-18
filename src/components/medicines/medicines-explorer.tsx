@@ -28,6 +28,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { EmptyState } from "@/components/shared/empty-state";
+import { notifySelf } from "@/app/actions";
 import { MEDICINE_FREQUENCIES } from "@/lib/constants";
 import {
   addMedicine,
@@ -98,6 +99,12 @@ export function MedicinesExplorer({
           // demo mode — reminders are generated locally already
         });
       toast.success(`${values.name} added. We'll remind you on time!`);
+      notifySelf({
+        title: "Reminder schedule created",
+        message: `We'll remind you to take ${values.name} every day at ${presetTimes.map(formatTime).join(", ") || "your chosen times"}.`,
+        type: "reminder",
+        link: "/dashboard/medicines",
+      });
       setOpen(false);
       form.reset();
     } catch (err) {
