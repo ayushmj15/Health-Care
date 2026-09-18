@@ -124,6 +124,13 @@ export function AppointmentList({
                     whatsapp={a.doctor?.whatsapp}
                     message={`Hi Dr. ${a.doctor?.name ?? ""}, I have an appointment on ${formatDate(a.appointment_date)}.`}
                   />
+                  {a.type === "video" && (a.status === "pending" || a.status === "confirmed") && (
+                    <Button size="sm" variant="teal" asChild>
+                      <a href={`/video/${a.id}`} target="_blank" rel="noopener noreferrer">
+                        <Video className="h-3.5 w-3.5" /> Join video call
+                      </a>
+                    </Button>
+                  )}
                   {a.hospital?.website && (
                     <Button size="sm" variant="outline" asChild>
                       <a href={a.hospital.website} target="_blank" rel="noopener noreferrer">
