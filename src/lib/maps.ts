@@ -20,3 +20,14 @@ export function hospitalDirectionsUrl(h: {
   }
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(h.name ?? "")}`;
 }
+
+/**
+ * WhatsApp chat link for a phone number with an optional pre-filled message.
+ * Numbers are stripped to digits so formatted Indian numbers (e.g. "+91 98450 12345") work directly.
+ */
+export function whatsappUrl(phone: string, message?: string): string {
+  const digits = phone.replace(/\D/g, "");
+  if (!digits) return "https://wa.me/";
+  const base = `https://wa.me/${digits}`;
+  return message ? `${base}?text=${encodeURIComponent(message)}` : base;
+}
