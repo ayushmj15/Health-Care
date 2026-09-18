@@ -15,6 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/shared/empty-state";
+import { ContactButtons } from "@/components/shared/contact-buttons";
 import { hospitalDirectionsUrl } from "@/lib/maps";
 import { formatDate, formatTime } from "@/lib/utils";
 import { updateAppointmentStatus } from "@/lib/services/appointments";
@@ -109,6 +110,11 @@ export function AppointmentList({
                 </div>
 
                 <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+                  <ContactButtons
+                    phone={a.doctor?.phone}
+                    whatsapp={a.doctor?.whatsapp}
+                    message={`Hi Dr. ${a.doctor?.name ?? ""}, I have an appointment on ${formatDate(a.appointment_date)}.`}
+                  />
                   {a.hospital?.website && (
                     <Button size="sm" variant="outline" asChild>
                       <a href={a.hospital.website} target="_blank" rel="noopener noreferrer">
