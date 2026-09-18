@@ -1,8 +1,33 @@
 import { NextResponse } from "next/server";
 import { GEMINI_SYSTEM_PROMPT, localHealthAnswer, type AiMessage } from "@/lib/ai";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
+
+// ---------------------------------------------------------------------------
+// In-memory rate limiter: sliding window per user id (or per IP in demo mode).
+// Resets on redeploy — acceptable for this app; it prevents trivial abuse.
+// ---------------------------------------------------------------------------
+const WINDOW_MS = 60 * 1000;
+const MAX_PER_WINDOW = 12;
+const hits = new Map<string, number[]>();
+
+function rateLimit(key: string): boolean {
+  const now = Date.now();
+  const recent = (hits.get(key) ?? []).filter((t) => now - t < WINDOW_MS);
+  if (recent.length >= MAX_PER_WINDOW) {
+    hits.set(key, recent);
+    return false;
+  }
+  recent.push(now);
+  hits.set(key, recent);
+  return true;
+}
+
+function clientIp(request: Request): string {
+  return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+}
 
 interface GeminiPart {
   text: string;
@@ -69,6 +94,28 @@ async function callGemini(messages: AiMessage[], action: string) {
 }
 
 export async function POST(req: Request) {
+  // ---- Authentication (required whenever Supabase is configured) ----------
+  let rateKey = clientIp(req);
+  if (isSupabaseConfigured()) {
+    const { createClient } = await import("@/lib/supabase/server");
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+    }
+    rateKey = user.id;
+  }
+
+  // ---- Rate limit ---------------------------------------------------------
+  if (!rateLimit(rateKey)) {
+    return NextResponse.json(
+      { error: "Too many requests. Please wait a minute and try again." },
+      { status: 429 },
+    );
+  }
+
   let payload: { messages?: AiMessage[]; action?: string };
   try {
     payload = await req.json();
