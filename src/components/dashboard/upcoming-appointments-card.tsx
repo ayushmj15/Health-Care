@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/shared/empty-state";
+import { ContactButtons } from "@/components/shared/contact-buttons";
 import { formatDate, formatTime } from "@/lib/utils";
 import type { Appointment } from "@/types";
 
@@ -58,7 +59,7 @@ export function UpcomingAppointments({ appointments }: { appointments: Appointme
               </span>
             </div>
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <p className="truncate text-sm font-semibold">{a.doctor?.name ?? "Doctor"}</p>
                 <Badge variant={STATUS_VARIANT[a.status] ?? "secondary"} className="capitalize">
                   {a.status}
@@ -78,6 +79,13 @@ export function UpcomingAppointments({ appointments }: { appointments: Appointme
                   <Stethoscope className="h-3.5 w-3.5" />
                   {formatDate(a.appointment_date)}
                 </span>
+              </div>
+              <div className="mt-2">
+                <ContactButtons
+                  phone={a.doctor?.phone}
+                  whatsapp={a.doctor?.whatsapp}
+                  message={`Hi Dr. ${a.doctor?.name ?? ""}, I have a follow-up about my appointment on ${formatDate(a.appointment_date)}.`}
+                />
               </div>
             </div>
           </div>
