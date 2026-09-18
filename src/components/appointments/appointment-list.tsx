@@ -19,6 +19,7 @@ import { ContactButtons } from "@/components/shared/contact-buttons";
 import { hospitalDirectionsUrl } from "@/lib/maps";
 import { formatDate, formatTime } from "@/lib/utils";
 import { updateAppointmentStatus } from "@/lib/services/appointments";
+import { notifySelf } from "@/app/actions";
 import type { Appointment } from "@/types";
 
 const STATUS_VARIANT: Record<string, "default" | "success" | "warning" | "destructive" | "secondary"> = {
@@ -49,6 +50,14 @@ export function AppointmentList({
     try {
       await updateAppointmentStatus(cancelling.id, "cancelled");
       toast.success("Appointment cancelled.");
+      notifySelf({
+        title: "Appointment cancelled",
+        message: cancelling.doctor?.name
+          ? `Your appointment with ${cancelling.doctor.name} on ${formatDate(cancelling.appointment_date)} has been cancelled.`
+          : `Your appointment on ${formatDate(cancelling.appointment_date)} has been cancelled.`,
+        type: "appointment",
+        link: "/dashboard/appointments",
+      });
       setCancelling(null);
       onChanged?.();
     } catch (err) {
