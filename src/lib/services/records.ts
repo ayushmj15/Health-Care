@@ -9,13 +9,15 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 const PUBLIC_RECORDS_BUCKET = "records";
 
-/** Absolute public URL for a stored file, given a full URL or a bucket path. */
+/**
+ * Resolve a stored record file to a URL the browser can open.
+ * Relative paths are served through the authenticated proxy route; the
+ * storage bucket itself is private so URLs here never leak publicly.
+ */
 export function resolveRecordFileUrl(value: string | null | undefined): string | null {
   if (!value) return null;
   if (value.startsWith("http")) return value;
-  const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  if (!base) return null;
-  return `${base}/storage/v1/object/public/${PUBLIC_RECORDS_BUCKET}/${value}`;
+  return `/api/records/file?path=${encodeURIComponent(value)}`;
 }
 
 export interface NewReport {
@@ -65,8 +67,9 @@ export async function deleteReport(reportId: string) {
 }
 
 /**
- * Upload a file to the public `records` bucket under the user's folder.
- * Returns the full public URL of the uploaded file (empty string in demo mode).
+ * Upload a file to the `records` bucket under the user's folder.
+ * Returns the relative storage path (so the client never persists a public
+ * URL). Pass the path into `resolveRecordFileUrl` when you need a link.
  */
 export async function uploadRecordFile(userId: string, file: File): Promise<string> {
   if (!isSupabaseConfigured()) return "";
@@ -79,8 +82,7 @@ export async function uploadRecordFile(userId: string, file: File): Promise<stri
     upsert: false,
   });
   if (error) throw new Error(error.message);
-  const url = resolveRecordFileUrl(path);
-  return url ?? "";
+  return path;
 }
 
 /** Build a public/signed URL for a stored record file. */
