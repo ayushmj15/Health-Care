@@ -38,3 +38,73 @@ export async function notifySelf(input: { title: string; message?: string; type?
     // notifications are best-effort
   }
 }
+
+/** Admin: insert a new hospital. Demo/no-DB mode is a no-op. */
+export async function adminCreateHospital(input: {
+  name: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  specialities: string[];
+  emergency: boolean;
+}) {
+  if (!isSupabaseConfigured()) return { ok: true };
+  try {
+    const { createClient } = await import("@/lib/supabase/server");
+    const supabase = await createClient();
+    const { error } = await supabase.from("hospitals").insert({
+      name: input.name,
+      address: input.address ?? null,
+      city: input.city ?? null,
+      state: input.state ?? null,
+      phone: input.phone ?? null,
+      email: input.email ?? null,
+      website: input.website ?? null,
+      specialities: input.specialities,
+      emergency: input.emergency,
+      rating: 0,
+      reviews_count: 0,
+      is_active: true,
+    });
+    if (error) return { ok: false, error: error.message };
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "Could not create hospital." };
+  }
+}
+
+/** Admin: insert a new doctor. Demo/no-DB mode is a no-op. */
+export async function adminCreateDoctor(input: {
+  name: string;
+  speciality: string;
+  qualifications?: string;
+  experience_years?: number;
+  fee?: number;
+  phone?: string;
+  whatsapp?: string;
+  hospital_id?: string;
+}) {
+  if (!isSupabaseConfigured()) return { ok: true };
+  try {
+    const { createClient } = await import("@/lib/supabase/server");
+    const supabase = await createClient();
+    const { error } = await supabase.from("doctors").insert({
+      name: input.name,
+      speciality: input.speciality,
+      qualifications: input.qualifications ?? null,
+      experience_years: input.experience_years ?? 0,
+      fee: input.fee ?? 500,
+      phone: input.phone ?? null,
+      whatsapp: input.whatsapp ?? null,
+      hospital_id: input.hospital_id ?? null,
+      is_active: true,
+    });
+    if (error) return { ok: false, error: error.message };
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "Could not create doctor." };
+  }
+}
