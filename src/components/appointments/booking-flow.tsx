@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createAppointment, generateTimeSlots } from "@/lib/services/appointments";
+import { notifySelf } from "@/app/actions";
 import { hospitalDirectionsUrl } from "@/lib/maps";
 import { appointmentSchema, type AppointmentInput } from "@/lib/validations";
 import { formatDate, formatTime } from "@/lib/utils";
@@ -98,6 +99,14 @@ export function BookingFlow({
         reason: values.reason,
       });
       toast.success("Appointment booked successfully!");
+      notifySelf({
+        title: "Appointment requested",
+        message: selectedDoctor
+          ? `Your ${values.type === "video" ? "video consult" : "visit"} with ${selectedDoctor.name} on ${formatDate(values.date)} has been sent for confirmation.`
+          : `Your appointment on ${formatDate(values.date)} has been sent for confirmation.`,
+        type: "appointment",
+        link: "/dashboard/appointments",
+      });
       form.reset();
       setStep(0);
       onBooked?.();
