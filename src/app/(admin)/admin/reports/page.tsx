@@ -1,8 +1,8 @@
-import { Download, FileBarChart, FileSpreadsheet, FileText, Printer } from "lucide-react";
+import { FileBarChart, FileSpreadsheet, FileText } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { ReportExportButton, ReportToolbar } from "@/components/admin/report-export-actions";
 import { PageTransition } from "@/components/shared/motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getAdminAnalytics } from "@/lib/services/admin.server";
 
@@ -46,9 +46,7 @@ export default async function AdminReportsPage() {
           title="Reports"
           description="Generate and export platform reports."
         >
-          <Button size="sm" variant="outline">
-            <Printer className="h-4 w-4" /> Print
-          </Button>
+          <ReportToolbar data={data} />
         </AdminPageHeader>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -68,9 +66,7 @@ export default async function AdminReportsPage() {
                 <p className="text-xs text-muted-foreground">
                   Generated {thisMonth.month} {new Date().getFullYear()}
                 </p>
-                <Button size="sm" variant="ghost" className="gap-1 text-primary">
-                  <Download className="h-4 w-4" /> Export
-                </Button>
+                <ReportExportButton title={report.title} data={data} />
               </CardContent>
             </Card>
           ))}
