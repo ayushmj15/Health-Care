@@ -93,3 +93,19 @@ export function buildSchedule(medicine: Medicine, from = new Date()): string[] {
   }
   return occurrences;
 }
+
+/**
+ * Build the reminder rows (without the embedded medicine) for a medicine's
+ * schedule. "As needed" medicines without fixed times produce no reminders.
+ */
+export function buildReminderRows(medicine: Medicine, from = new Date()): Omit<Reminder, "medicine">[] {
+  if (medicine.times.length === 0) return [];
+  return buildSchedule(medicine, from).map((scheduled_at, i) => ({
+    id: `rem-${medicine.id}-${i}`,
+    patient_id: medicine.patient_id,
+    medicine_id: medicine.id,
+    scheduled_at,
+    status: "pending" as const,
+    taken_at: null,
+  }));
+}
