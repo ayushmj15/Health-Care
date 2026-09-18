@@ -75,6 +75,8 @@ export interface Doctor {
   experience_years: number;
   fee: number;
   rating: number;
+  phone: string | null;
+  whatsapp: string | null;
   bio: string | null;
   avatar_url: string | null;
   available_days: string[];
