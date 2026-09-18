@@ -50,11 +50,17 @@ export function SignupForm() {
       if (data.session) {
         toast.success("Account created. Welcome!");
         window.location.href = "/dashboard";
+      } else if (data.user?.identities?.length === 0) {
+        toast.error("An account already exists with this email. Log in instead.");
       } else {
         toast.success("Check your email to confirm your account.");
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Sign up failed. Please try again.");
+      if (err instanceof Error && err.message.toLowerCase().includes("rate limit")) {
+        toast.error("Too many signup emails from this project just now. Please wait a few minutes and try again.");
+      } else {
+        toast.error(err instanceof Error ? err.message : "Sign up failed. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
