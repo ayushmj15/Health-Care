@@ -86,6 +86,16 @@ export function UpcomingAppointments({ appointments }: { appointments: Appointme
                   whatsapp={a.doctor?.whatsapp}
                   message={`Hi Dr. ${a.doctor?.name ?? ""}, I have a follow-up about my appointment on ${formatDate(a.appointment_date)}.`}
                 />
+                {a.type === "video" && (a.status === "pending" || a.status === "confirmed") && (
+                  <a
+                    href={`/video/${a.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+                  >
+                    <Video className="h-3.5 w-3.5" /> Join video call
+                  </a>
+                )}
               </div>
             </div>
           </div>
