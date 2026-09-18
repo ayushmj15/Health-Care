@@ -75,6 +75,22 @@ export async function setReminderStatus(reminderId: string, status: Reminder["st
   return true;
 }
 
+/**
+ * Create the pending reminders for a medicine in the DB (or simply rebuild
+ * the rows in demo mode). Used right after a medicine is added so the
+ * schedule immediately appears in "today's reminders".
+ */
+export async function createMedicineReminders(medicine: Medicine): Promise<Reminder[]> {
+  const rows = buildReminderRows(medicine);
+  if (!isSupabaseConfigured()) return rows;
+  const { createClient } = await import("@/lib/supabase/client");
+  const supabase = await createClient();
+  const inserts = rows.map(({ id: _id, ...insert }) => insert);
+  const { data, error } = await supabase.from("reminders").insert(inserts).select().order("scheduled_at");
+  if (error) throw new Error(error.message);
+  return (data ?? []) as Reminder[];
+}
+
 /** Generate the next week of reminders for a medicine (client-side helper). */
 export function buildSchedule(medicine: Medicine, from = new Date()): string[] {
   const times = medicine.times.length ? medicine.times : ["09:00"];
