@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ContactButtons } from "@/components/shared/contact-buttons";
 import {
   Form,
   FormControl,
@@ -197,6 +198,9 @@ export function BookingFlow({
                         <ExternalLink className="h-3.5 w-3.5" /> Visit hospital website
                       </a>
                     )}
+                    <div className="mt-2">
+                      <ContactButtons phone={selectedHospital.phone} whatsapp={selectedHospital.phone} message={`Hi, I'd like to know about appointments at ${selectedHospital.name}.`} />
+                    </div>
                   </div>
                 </div>
               )}
@@ -222,27 +226,34 @@ export function BookingFlow({
                         className="grid gap-3 sm:grid-cols-2"
                       >
                         {availableDoctors.map((d) => (
-                          <label
-                            key={d.id}
-                            className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-all hover:border-primary/40 ${
-                              field.value === d.id ? "border-primary bg-primary/5 ring-1 ring-primary/30" : ""
-                            }`}
-                          >
-                            <RadioGroupItem value={d.id} className="mt-1" />
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-2">
-                                <Stethoscope className="h-4 w-4 text-primary" />
-                                <p className="text-sm font-semibold">{d.name}</p>
+                          <div key={d.id} className="flex flex-col gap-1.5">
+                            <label
+                              className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-all hover:border-primary/40 ${
+                                field.value === d.id ? "border-primary bg-primary/5 ring-1 ring-primary/30" : ""
+                              }`}
+                            >
+                              <RadioGroupItem value={d.id} className="mt-1" />
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <Stethoscope className="h-4 w-4 text-primary" />
+                                  <p className="text-sm font-semibold">{d.name}</p>
+                                </div>
+                                <p className="mt-0.5 text-xs text-muted-foreground">
+                                  {d.speciality} · {d.experience_years} yrs exp
+                                </p>
+                                <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                                  <span>⭐ {d.rating}</span>
+                                  <span className="font-medium text-primary">₹{d.fee}</span>
+                                </div>
                               </div>
-                              <p className="mt-0.5 text-xs text-muted-foreground">
-                                {d.speciality} · {d.experience_years} yrs exp
-                              </p>
-                              <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
-                                <span>⭐ {d.rating}</span>
-                                <span className="font-medium text-primary">₹{d.fee}</span>
-                              </div>
-                            </div>
-                          </label>
+                            </label>
+                            <ContactButtons
+                              className="px-1"
+                              phone={d.phone}
+                              whatsapp={d.whatsapp}
+                              message={`Hi Dr. ${d.name}, I'd like to book an appointment.`}
+                            />
+                          </div>
                         ))}
                       </RadioGroup>
                       <FormMessage />
