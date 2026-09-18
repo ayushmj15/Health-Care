@@ -1,10 +1,10 @@
 "use client";
 
-import { CalendarPlus, ExternalLink, MapPin, Navigation, Phone, Star } from "lucide-react";
+import { CalendarPlus, ExternalLink, MapPin, MessageCircle, Navigation, Phone, Star } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { hospitalDirectionsUrl } from "@/lib/maps";
+import { hospitalDirectionsUrl, whatsappUrl } from "@/lib/maps";
 import type { Hospital } from "@/types";
 
 export function HospitalCard({ hospital, selected, onSelect }: { hospital: Hospital & { distanceKm?: number }; selected?: boolean; onSelect?: (h: Hospital) => void }) {
@@ -71,9 +71,15 @@ export function HospitalCard({ hospital, selected, onSelect }: { hospital: Hospi
       </div>
 
       <div className="mt-4 flex items-center justify-between gap-2">
-        <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-          <Phone className="h-3 w-3" />
-          {hospital.phone}
+        <span className="inline-flex min-w-0 items-center gap-1 text-xs text-muted-foreground">
+          <Phone className="h-3 w-3 shrink-0" />
+          {hospital.phone ? (
+            <a href={`tel:${hospital.phone.replace(/\D/g, "")}`} className="truncate hover:text-foreground hover:underline">
+              {hospital.phone}
+            </a>
+          ) : (
+            "No phone"
+          )}
         </span>
         <Button size="sm" variant={hospital.emergency ? "destructive" : "default"} asChild>
           <Link href={`/dashboard/appointments?hospital=${hospital.id}`}>
@@ -84,6 +90,17 @@ export function HospitalCard({ hospital, selected, onSelect }: { hospital: Hospi
       </div>
 
       <div className="mt-2.5 flex flex-wrap items-center gap-2 border-t pt-2.5">
+        {hospital.phone && (
+          <Button size="sm" variant="outline" asChild className="flex-1 text-emerald-600 hover:text-emerald-600">
+            <a
+              href={whatsappUrl(hospital.phone, `Hi, I'd like to know about healthcare services at ${hospital.name}.`)}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
+            </a>
+          </Button>
+        )}
         <Button size="sm" variant="outline" asChild className="flex-1">
           <a href={directionsUrl} target="_blank" rel="noopener noreferrer">
             <Navigation className="h-3.5 w-3.5" /> Directions
