@@ -1,5 +1,6 @@
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminTable, type AdminColumn } from "@/components/admin/admin-table";
+import { ContactButtons } from "@/components/shared/contact-buttons";
 import { PageTransition } from "@/components/shared/motion";
 import { Badge } from "@/components/ui/badge";
 import { getAdminList } from "@/lib/services/admin.server";
@@ -48,9 +49,16 @@ export default async function AdminAppointmentsPage({
       key: "doctor",
       header: "Doctor",
       render: (a) => (
-        <div>
-          <p className="font-medium">{a.doctor?.name ?? "—"}</p>
-          <p className="text-xs text-muted-foreground">{a.doctor?.speciality ?? ""}</p>
+        <div className="flex items-center gap-2">
+          <div>
+            <p className="font-medium">{a.doctor?.name ?? "—"}</p>
+            <p className="text-xs text-muted-foreground">{a.doctor?.speciality ?? ""}</p>
+          </div>
+          <ContactButtons
+            phone={a.doctor?.phone}
+            whatsapp={a.doctor?.whatsapp}
+            message={`Hi Dr. ${a.doctor?.name ?? ""}, `}
+          />
         </div>
       ),
     },
