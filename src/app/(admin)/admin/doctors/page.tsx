@@ -1,10 +1,10 @@
-import { Plus, Star } from "lucide-react";
+import { Star } from "lucide-react";
+import { AddDoctorDialog } from "@/components/admin/add-doctor-dialog";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminTable, type AdminColumn } from "@/components/admin/admin-table";
 import { ContactButtons } from "@/components/shared/contact-buttons";
 import { PageTransition } from "@/components/shared/motion";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { getAdminList } from "@/lib/services/admin.server";
 import type { Doctor } from "@/types";
 
@@ -19,6 +19,7 @@ export default async function AdminDoctorsPage({
   const currentPage = Math.max(1, Number(page ?? 1) || 1);
   const { rows, total } = await getAdminList("doctors", currentPage, search ?? "");
   const doctors = rows as unknown as Doctor[];
+  const { rows: hospitals } = await getAdminList("hospitals", 1, "", 1000);
 
   const columns: AdminColumn<Doctor>[] = [
     {
@@ -84,9 +85,7 @@ export default async function AdminDoctorsPage({
           title="Doctors"
           description="Manage doctors and their availability."
         >
-          <Button size="sm">
-            <Plus className="h-4 w-4" /> Add doctor
-          </Button>
+          <AddDoctorDialog hospitals={(hospitals as { id: string; name: string }[]).map((h) => ({ id: h.id, name: h.name }))} />
         </AdminPageHeader>
 
         <AdminTable
