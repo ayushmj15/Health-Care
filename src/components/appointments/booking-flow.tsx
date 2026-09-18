@@ -367,6 +367,12 @@ export function BookingFlow({
                         </SelectContent>
                       </Select>
                       <FormMessage />
+                      {form.watch("type") === "video" && (
+                        <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <Video className="h-3.5 w-3.5 text-primary" />
+                          A private video link appears on your appointment once booked.
+                        </p>
+                      )}
                     </FormItem>
                   )}
                 />
