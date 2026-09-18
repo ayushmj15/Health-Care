@@ -262,6 +262,7 @@ export function buildDemoDoctors(): Doctor[] {
     for (const spec of hospital.specialities.slice(0, 3)) {
       const pool = DOCTOR_NAMES[spec] ?? [["Dr. John Doe", "MBBS, MD", 8, "General specialist."]];
       const [name, quals, exp, bio] = pool[hospital.id.charCodeAt(1) % pool.length] ?? pool[0];
+      const contact = `+91 9${String(9000000000 + id).slice(1)}`;
       doctors.push({
         id: `d${++id}`,
         hospital_id: hospital.id,
@@ -272,6 +273,8 @@ export function buildDemoDoctors(): Doctor[] {
         experience_years: exp,
         fee: 400 + ((id * 37) % 5) * 125,
         rating: 4.4 + ((id * 13) % 5) / 10,
+        phone: contact,
+        whatsapp: contact,
         bio,
         avatar_url: null,
         available_days: ["Mon", "Tue", "Wed", "Thu", "Fri"],
