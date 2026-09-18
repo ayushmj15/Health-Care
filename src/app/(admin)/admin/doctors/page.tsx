@@ -1,6 +1,7 @@
 import { Plus, Star } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminTable, type AdminColumn } from "@/components/admin/admin-table";
+import { ContactButtons } from "@/components/shared/contact-buttons";
 import { PageTransition } from "@/components/shared/motion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -68,6 +69,11 @@ export default async function AdminDoctorsPage({
           {d.rating.toFixed(1)}
         </span>
       ),
+    },
+    {
+      key: "contact",
+      header: "Contact",
+      render: (d) => <ContactButtons phone={d.phone ?? d.whatsapp} whatsapp={d.whatsapp} message={`Hi Dr. ${d.name}, `} />,
     },
   ];
 
