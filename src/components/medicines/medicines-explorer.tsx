@@ -185,6 +185,16 @@ export function MedicinesExplorer({
                             As needed
                           </Badge>
                         )}
+                        {m.active && m.times.length > 0 && (() => {
+                          const upcoming = reminders
+                            .filter((r) => r.medicine_id === m.id && r.status === "pending")
+                            .sort((a, b) => a.scheduled_at.localeCompare(b.scheduled_at))[0];
+                          return upcoming ? (
+                            <Badge variant="outline" className="gap-1 border-teal/40 text-teal">
+                              <Bell className="h-3 w-3" /> Next: {formatTime(new Date(upcoming.scheduled_at).toTimeString().slice(0, 5))}
+                            </Badge>
+                          ) : null;
+                        })()}
                       </div>
                       {m.notes && <p className="mt-1.5 text-xs text-muted-foreground">{m.notes}</p>}
                     </div>
