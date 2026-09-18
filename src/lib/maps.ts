@@ -11,12 +11,16 @@ export function hospitalDirectionsUrl(h: {
   latitude?: number | null;
   longitude?: number | null;
 }): string {
+  // Prefer the stored coordinates (same spot as the map pin) so navigation
+  // matches what the user is looking at. Fall back to text address geocoding
+  // only when no coordinates exist — addresses like "Opposite IIM" geocode to
+  // the wrong place.
+  if (h.latitude && h.longitude) {
+    return `https://www.google.com/maps/dir/?api=1&destination=${h.latitude},${h.longitude}`;
+  }
   const parts = [h.address, h.city, h.state].filter(Boolean);
   if (parts.length > 0) {
     return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(parts.join(", "))}`;
-  }
-  if (h.latitude && h.longitude) {
-    return `https://www.google.com/maps/dir/?api=1&destination=${h.latitude},${h.longitude}`;
   }
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(h.name ?? "")}`;
 }
