@@ -31,6 +31,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { MEDICINE_FREQUENCIES } from "@/lib/constants";
 import {
   addMedicine,
+  createMedicineReminders,
   deleteMedicine,
   setReminderStatus,
   toggleMedicine,
@@ -89,6 +90,13 @@ export function MedicinesExplorer({
         notes: values.notes,
       });
       setMedicines((prev) => [created, ...prev]);
+      createMedicineReminders(created)
+        .then((newReminders) => {
+          setReminders((prev) => [...newReminders, ...prev].sort((a, b) => a.scheduled_at.localeCompare(b.scheduled_at)));
+        })
+        .catch(() => {
+          // demo mode — reminders are generated locally already
+        });
       toast.success(`${values.name} added. We'll remind you on time!`);
       setOpen(false);
       form.reset();
