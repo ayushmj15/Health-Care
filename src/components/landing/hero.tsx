@@ -2,7 +2,6 @@
 
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight, Bot, CalendarHeart, HeartPulse, ShieldCheck } from "lucide-react";
-import Link from "next/link";
 import { useRef } from "react";
 import { AuthAwareButton } from "@/components/landing/auth-aware-button";
 import { Button } from "@/components/ui/button";
@@ -85,16 +84,7 @@ export function Hero() {
             className="mt-6 text-4xl font-bold leading-[1.1] tracking-tight sm:text-6xl lg:text-7xl"
           >
             Your health,{" "}
-            <span className="text-gradient relative">
-              intelligently
-              {/* Decorative underline glow */}
-              <motion.span
-                initial={{ scaleX: 0, opacity: 0 }}
-                animate={{ scaleX: 1, opacity: 1 }}
-                transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
-                className="absolute -bottom-2 left-0 right-0 h-1 rounded-full bg-gradient-to-r from-primary via-sky-500 to-teal origin-left"
-              />
-            </span>{" "}
+            <span className="text-gradient">intelligently</span>{" "}
             cared for
           </motion.h1>
 
@@ -117,9 +107,9 @@ export function Hero() {
             <AuthAwareButton href="/signup" loggedInLabel="Open dashboard" size="xl" className="w-full sm:w-auto shadow-glow-primary">
               Get started free <ArrowRight className="ml-1 h-4 w-4" />
             </AuthAwareButton>
-            <Button size="xl" variant="outline" className="w-full sm:w-auto" asChild>
-              <Link href="/dashboard">Explore the demo</Link>
-            </Button>
+            <AuthAwareButton href="/signup" loggedInLabel="Open dashboard" size="xl" variant="outline" className="w-full sm:w-auto">
+              Explore the demo
+            </AuthAwareButton>
           </motion.div>
 
           <motion.p

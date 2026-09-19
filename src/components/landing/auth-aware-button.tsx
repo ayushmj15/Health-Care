@@ -13,25 +13,36 @@ export function AuthAwareButton({
   href,
   loggedInLabel,
   children,
+  hideWhenAuthed,
   ...props
-}: { href: string; loggedInLabel?: string; children: React.ReactNode } & ButtonProps) {
+}: { href: string; loggedInLabel?: string; children: React.ReactNode; hideWhenAuthed?: boolean } & ButtonProps) {
   const router = useRouter();
   const [authed, setAuthed] = useState<boolean | null>(null);
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
     async function check() {
       if (typeof window !== "undefined" && window.__SUPABASE_DEMO__) {
-        if (!cancelled) setAuthed(true);
+        if (!cancelled) {
+          setAuthed(true);
+          setChecking(false);
+        }
         return;
       }
       try {
         const { createClient } = await import("@/lib/supabase/client");
         const supabase = await createClient();
         const { data } = await supabase.auth.getSession();
-        if (!cancelled) setAuthed(Boolean(data.session));
+        if (!cancelled) {
+          setAuthed(Boolean(data.session));
+          setChecking(false);
+        }
       } catch {
-        if (!cancelled) setAuthed(false);
+        if (!cancelled) {
+          setAuthed(false);
+          setChecking(false);
+        }
       }
     }
     check();
@@ -40,7 +51,10 @@ export function AuthAwareButton({
     };
   }, []);
 
+  if (hideWhenAuthed && authed) return null;
+
   async function go() {
+    if (checking) return; // Wait for auth check to complete
     if (authed) {
       router.push("/dashboard");
       return;
@@ -57,7 +71,7 @@ export function AuthAwareButton({
   }
 
   return (
-    <Button {...props} onClick={go}>
+    <Button {...props} onClick={go} disabled={checking}>
       {authed && loggedInLabel ? loggedInLabel : children}
     </Button>
   );

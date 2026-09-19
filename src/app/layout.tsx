@@ -34,6 +34,9 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
     title: "Health Care",
   },
+  other: {
+    "apple-mobile-web-app-capable": "yes",
+  },
 };
 
 export const viewport: Viewport = {

@@ -89,6 +89,7 @@ export function Cta() {
               href="/login"
               size="xl"
               variant="outline"
+              hideWhenAuthed
               className="w-full border-white/40 bg-white/10 text-white backdrop-blur hover:bg-white/20 sm:w-auto"
             >
               Log in
