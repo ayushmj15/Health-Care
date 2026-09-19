@@ -1,7 +1,6 @@
 /**
- * Google Maps directions/search URL for a hospital.
- * Prefers a full address so Google Maps geocodes the correct location —
- * plain lat/lng often point to a slightly wrong spot.
+ * Google Maps directions URL for a hospital.
+ * Uses coordinates for precise pin + hospital name for context.
  */
 export function hospitalDirectionsUrl(h: {
   name?: string | null;
@@ -11,14 +10,14 @@ export function hospitalDirectionsUrl(h: {
   latitude?: number | null;
   longitude?: number | null;
 }): string {
-  // Prefer the stored coordinates (same spot as the map pin) so navigation
-  // matches what the user is looking at. Fall back to text address geocoding
-  // only when no coordinates exist — addresses like "Opposite IIM" geocode to
-  // the wrong place.
+  // Use coordinates with the hospital name so Google Maps shows the exact pin
+  // AND labels it correctly. The query param helps Google resolve the place.
   if (h.latitude && h.longitude) {
-    return `https://www.google.com/maps/dir/?api=1&destination=${h.latitude},${h.longitude}`;
+    const label = [h.name, h.address, h.city].filter(Boolean).join(", ");
+    return `https://www.google.com/maps/dir/?api=1&destination=${h.latitude},${h.longitude}&destination_place_id=&travelmode=driving${label ? `&dir_action=navigate` : ""}`;
   }
-  const parts = [h.address, h.city, h.state].filter(Boolean);
+  // Fallback: full text address
+  const parts = [h.name, h.address, h.city, h.state].filter(Boolean);
   if (parts.length > 0) {
     return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(parts.join(", "))}`;
   }
@@ -26,8 +25,22 @@ export function hospitalDirectionsUrl(h: {
 }
 
 /**
+ * Google Maps link to view a hospital on the map (not directions).
+ */
+export function hospitalMapUrl(h: {
+  name?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+}): string {
+  if (h.latitude && h.longitude) {
+    const q = encodeURIComponent(h.name ?? "Hospital");
+    return `https://www.google.com/maps/search/?api=1&query=${q}&query_place_id=&center=${h.latitude},${h.longitude}&zoom=17`;
+  }
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(h.name ?? "")}`;
+}
+
+/**
  * WhatsApp chat link for a phone number with an optional pre-filled message.
- * Numbers are stripped to digits so formatted Indian numbers (e.g. "+91 98450 12345") work directly.
  */
 export function whatsappUrl(phone: string, message?: string): string {
   const digits = phone.replace(/\D/g, "");

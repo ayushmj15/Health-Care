@@ -118,7 +118,7 @@ export function Hero() {
               Get started free <ArrowRight className="ml-1 h-4 w-4" />
             </AuthAwareButton>
             <Button size="xl" variant="outline" className="w-full sm:w-auto" asChild>
-              <Link href="/dashboard">Explore the demo</Link>
+              <Link href="#features">Explore features</Link>
             </Button>
           </motion.div>
 

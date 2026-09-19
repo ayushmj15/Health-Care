@@ -2,7 +2,6 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AuthAwareButton } from "@/components/landing/auth-aware-button";
 import { Logo } from "@/components/shared/logo";
@@ -39,15 +38,20 @@ export function Navbar() {
 
         <div className="hidden items-center gap-1 md:flex">
           {NAV_LINKS.map((link) => (
-            <Link
+            <a
               key={link.href}
               href={link.href}
+              onClick={(e) => {
+                e.preventDefault();
+                const el = document.querySelector(link.href);
+                if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
               className="group relative rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
               {link.label}
               {/* Hover underline */}
               <span className="absolute bottom-0.5 left-3 right-3 h-[2px] origin-left scale-x-0 rounded-full bg-primary transition-transform duration-300 group-hover:scale-x-100" />
-            </Link>
+            </a>
           ))}
         </div>
 
@@ -91,13 +95,20 @@ export function Navbar() {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.05, type: "spring", stiffness: 300, damping: 20 }}
                 >
-                  <Link
+                  <a
                     href={link.href}
-                    onClick={() => setOpen(false)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setOpen(false);
+                      setTimeout(() => {
+                        const el = document.querySelector(link.href);
+                        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                      }, 300);
+                    }}
                     className="rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground block"
                   >
                     {link.label}
-                  </Link>
+                  </a>
                 </motion.div>
               ))}
               <motion.div

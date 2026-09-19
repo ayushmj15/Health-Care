@@ -1,6 +1,6 @@
 "use client";
 
-import { Crosshair, Loader2, MapPin, Navigation, Siren } from "lucide-react";
+import { ChevronDown, Crosshair, Filter, Loader2, MapPin, Navigation, Siren } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { HospitalCard } from "@/components/maps/hospital-card";
@@ -24,6 +24,7 @@ export function HospitalExplorer({ hospitals, cities }: { hospitals: Hospital[];
   const [locating, setLocating] = useState(false);
   const [locationDenied, setLocationDenied] = useState(false);
   const [selected, setSelected] = useState<Hospital | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   function locateMe() {
     if (!navigator.geolocation) {
@@ -36,7 +37,7 @@ export function HospitalExplorer({ hospitals, cities }: { hospitals: Hospital[];
         setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
         setLocationDenied(false);
         setLocating(false);
-        toast.success("Location found — hospitals sorted by distance from you.");
+        toast.success("Location found — hospitals sorted by distance.");
       },
       () => {
         setLocationDenied(true);
@@ -81,11 +82,13 @@ export function HospitalExplorer({ hospitals, cities }: { hospitals: Hospital[];
       : undefined;
   }, [location, filtered]);
 
+  const activeFilterCount = [speciality !== "all", city !== "all", emergencyOnly].filter(Boolean).length;
+
   return (
-    <div className="space-y-5">
-      {/* Controls */}
-      <div className="grid gap-3 rounded-2xl border bg-card p-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="relative sm:col-span-2">
+    <div className="space-y-4">
+      {/* Search + locate row — always visible */}
+      <div className="flex gap-2">
+        <div className="relative flex-1">
           <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search hospitals, specialities or cities…"
@@ -94,6 +97,27 @@ export function HospitalExplorer({ hospitals, cities }: { hospitals: Hospital[];
             className="pl-9"
           />
         </div>
+        <Button variant="outline" size="icon" onClick={locateMe} disabled={locating} className="shrink-0" aria-label="Use my location">
+          {locating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Crosshair className="h-4 w-4" />}
+        </Button>
+        <Button
+          variant={activeFilterCount > 0 ? "default" : "outline"}
+          size="icon"
+          className="shrink-0 sm:hidden"
+          onClick={() => setFiltersOpen(!filtersOpen)}
+          aria-label="Filters"
+        >
+          <Filter className="h-4 w-4" />
+          {activeFilterCount > 0 && (
+            <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-white">
+              {activeFilterCount}
+            </span>
+          )}
+        </Button>
+      </div>
+
+      {/* Filter row — collapsible on mobile, always visible on sm+ */}
+      <div className={`grid gap-3 rounded-2xl border bg-card p-3 sm:grid-cols-3 ${filtersOpen ? "block" : "hidden sm:grid"}`}>
         <Select value={speciality} onValueChange={setSpeciality}>
           <SelectTrigger>
             <SelectValue placeholder="Speciality" />
@@ -101,9 +125,7 @@ export function HospitalExplorer({ hospitals, cities }: { hospitals: Hospital[];
           <SelectContent>
             <SelectItem value="all">All specialities</SelectItem>
             {SPECIALITIES.map((s) => (
-              <SelectItem key={s} value={s}>
-                {s}
-              </SelectItem>
+              <SelectItem key={s} value={s}>{s}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -114,49 +136,52 @@ export function HospitalExplorer({ hospitals, cities }: { hospitals: Hospital[];
           <SelectContent>
             <SelectItem value="all">All cities</SelectItem>
             {cities.map((c) => (
-              <SelectItem key={c} value={c}>
-                {c}
-              </SelectItem>
+              <SelectItem key={c} value={c}>{c}</SelectItem>
             ))}
           </SelectContent>
         </Select>
-        <div className="flex items-center gap-3 sm:col-span-2 lg:col-span-1">
+        <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Switch id="emergency" checked={emergencyOnly} onCheckedChange={setEmergencyOnly} />
             <Label htmlFor="emergency" className="flex items-center gap-1.5 text-sm font-medium">
               <Siren className="h-4 w-4 text-red-500" /> Emergency only
             </Label>
           </div>
+          {(speciality !== "all" || city !== "all" || emergencyOnly) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => { setSpeciality("all"); setCity("all"); setEmergencyOnly(false); }}
+              className="text-xs"
+            >
+              Clear
+            </Button>
+          )}
         </div>
-        <Button variant="outline" onClick={locateMe} disabled={locating} className="sm:col-span-2 lg:col-span-1">
-          {locating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Crosshair className="h-4 w-4" />}
-          {locating ? "Finding location…" : location ? "Re-locate me" : "Use my location"}
-        </Button>
       </div>
 
       {locationDenied && (
         <p className="rounded-xl border border-amber-400/30 bg-amber-500/5 px-4 py-2.5 text-xs text-amber-700 dark:text-amber-400">
-          Location access is off — hospitals are shown in default order. Allow location in your browser to see the
-          nearest hospitals first.
+          Location access is off — hospitals shown in default order. Allow location in your browser to see nearest hospitals first.
         </p>
       )}
       {location && (
         <p className="flex items-center gap-2 text-xs text-muted-foreground">
           <Navigation className="h-3.5 w-3.5 text-primary" />
-          Showing hospitals sorted by distance from your current location.
+          Showing {filtered.length} hospitals sorted by distance from you.
         </p>
       )}
 
       {/* Map */}
       <div className="overflow-hidden rounded-2xl border">
-        <div className="flex items-center justify-between border-b bg-muted/20 px-4 py-2.5">
+        <div className="flex items-center justify-between border-b bg-muted/20 px-4 py-2">
           <p className="flex items-center gap-2 text-sm font-medium">
             <Navigation className="h-4 w-4 text-primary" />
             {location ? "Live locations" : "Nearby hospitals"}
           </p>
-          <span className="text-xs text-muted-foreground">{filtered.length} hospitals found</span>
+          <span className="text-xs text-muted-foreground">{filtered.length} found</span>
         </div>
-        <HospitalMap hospitals={filtered} center={mapCenter} selectedId={selected?.id} onSelect={setSelected} className="h-[380px]" />
+        <HospitalMap hospitals={filtered} center={mapCenter} selectedId={selected?.id} onSelect={setSelected} className="h-[300px] sm:h-[380px]" />
       </div>
 
       {/* List */}
@@ -180,7 +205,7 @@ export function HospitalExplorer({ hospitals, cities }: { hospitals: Hospital[];
           }
         />
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {filtered.map((h) => (
             <HospitalCard key={h.id} hospital={h} selected={selected?.id === h.id} onSelect={setSelected} />
           ))}

@@ -370,6 +370,11 @@
   inherits: false;
 }
 
+/* Smooth scrolling for anchor links */
+html {
+  scroll-behavior: smooth;
+}
+
 ::selection {
   background: hsl(var(--primary) / 0.2);
 }
