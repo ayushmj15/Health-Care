@@ -50,6 +50,8 @@ export async function adminCreateHospital(input: {
   website?: string;
   specialities: string[];
   emergency: boolean;
+  latitude?: number;
+  longitude?: number;
 }) {
   if (!isSupabaseConfigured()) return { ok: true };
   try {
@@ -65,6 +67,8 @@ export async function adminCreateHospital(input: {
       website: input.website ?? null,
       specialities: input.specialities,
       emergency: input.emergency,
+      latitude: input.latitude ?? null,
+      longitude: input.longitude ?? null,
       rating: 0,
       reviews_count: 0,
       is_active: true,

@@ -33,6 +33,8 @@ export function AddHospitalDialog() {
     website: "",
     specialities: "",
     emergency: false,
+    latitude: "",
+    longitude: "",
   });
 
   function set<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
@@ -43,6 +45,12 @@ export function AddHospitalDialog() {
     e.preventDefault();
     if (!form.name.trim()) {
       toast.error("Hospital name is required.");
+      return;
+    }
+    const latitude = form.latitude.trim() ? Number(form.latitude) : null;
+    const longitude = form.longitude.trim() ? Number(form.longitude) : null;
+    if ((latitude === null) !== (longitude === null) || Number.isNaN(latitude ?? NaN) || Number.isNaN(longitude ?? NaN)) {
+      toast.error("Enter both latitude and longitude (or leave both empty).");
       return;
     }
     setSaving(true);
@@ -59,6 +67,8 @@ export function AddHospitalDialog() {
         .map((s) => s.trim())
         .filter(Boolean),
       emergency: form.emergency,
+      latitude: latitude ?? undefined,
+      longitude: longitude ?? undefined,
     });
     setSaving(false);
     if (!result.ok) {
@@ -67,7 +77,7 @@ export function AddHospitalDialog() {
     }
     toast.success("Hospital added.");
     setOpen(false);
-    setForm({ name: "", address: "", city: "", state: "", phone: "", email: "", website: "", specialities: "", emergency: false });
+    setForm({ name: "", address: "", city: "", state: "", phone: "", email: "", website: "", specialities: "", emergency: false, latitude: "", longitude: "" });
     router.refresh();
   }
 
@@ -108,6 +118,31 @@ export function AddHospitalDialog() {
             <Label htmlFor="h-address">Address</Label>
             <Input id="h-address" value={form.address} onChange={(e) => set("address", e.target.value)} placeholder="Street, area" />
           </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="h-latitude">Latitude</Label>
+              <Input
+                id="h-latitude"
+                value={form.latitude}
+                onChange={(e) => set("latitude", e.target.value)}
+                placeholder="e.g. 12.9716"
+                inputMode="decimal"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="h-longitude">Longitude</Label>
+              <Input
+                id="h-longitude"
+                value={form.longitude}
+                onChange={(e) => set("longitude", e.target.value)}
+                placeholder="e.g. 77.5946"
+                inputMode="decimal"
+              />
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Leave both empty to skip the map pin. Tip: search the hospital in Google Maps, then copy the number from its URL.
+          </p>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="h-phone">Phone</Label>

@@ -2,7 +2,6 @@
 
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight, Bot, CalendarHeart, HeartPulse, ShieldCheck } from "lucide-react";
-import Link from "next/link";
 import { useRef } from "react";
 import { AuthAwareButton } from "@/components/landing/auth-aware-button";
 import { Button } from "@/components/ui/button";
