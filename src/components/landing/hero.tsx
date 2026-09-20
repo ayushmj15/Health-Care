@@ -87,13 +87,6 @@ export function Hero() {
             Your health,{" "}
             <span className="text-gradient relative">
               intelligently
-              {/* Decorative underline glow */}
-              <motion.span
-                initial={{ scaleX: 0, opacity: 0 }}
-                animate={{ scaleX: 1, opacity: 1 }}
-                transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
-                className="absolute -bottom-2 left-0 right-0 h-1 rounded-full bg-gradient-to-r from-primary via-sky-500 to-teal origin-left"
-              />
             </span>{" "}
             cared for
           </motion.h1>
@@ -112,7 +105,7 @@ export function Hero() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.3 }}
-            className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row"
+            className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row relative z-20"
           >
             <AuthAwareButton href="/signup" loggedInLabel="Open dashboard" size="xl" className="w-full sm:w-auto shadow-glow-primary">
               Get started free <ArrowRight className="ml-1 h-4 w-4" />
