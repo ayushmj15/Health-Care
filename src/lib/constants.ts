@@ -39,6 +39,7 @@ export const SPECIALITIES = [
   "Physiotherapy",
   "Psychiatry",
   "Emergency",
+  "Pharmacy",
 ] as const;
 
 export const REPORT_CATEGORIES = [

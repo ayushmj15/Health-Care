@@ -10,17 +10,16 @@ export function hospitalDirectionsUrl(h: {
   latitude?: number | null;
   longitude?: number | null;
 }): string {
-  // Use coordinates with the hospital name so Google Maps shows the exact pin
-  // AND labels it correctly. The query param helps Google resolve the place.
-  if (h.latitude && h.longitude) {
-    return `https://www.google.com/maps/dir/?api=1&destination=${h.latitude},${h.longitude}&travelmode=driving`;
-  }
-  // Fallback: full text address
+  // Prefer searching by name and address so Google Maps resolves the correct POI
+  // rather than a raw coordinate which can reverse-geocode to a nearby random shop.
   const parts = [h.name, h.address, h.city, h.state].filter(Boolean);
   if (parts.length > 0) {
     return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(parts.join(", "))}`;
   }
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(h.name ?? "")}`;
+  if (h.latitude && h.longitude) {
+    return `https://www.google.com/maps/dir/?api=1&destination=${h.latitude},${h.longitude}`;
+  }
+  return `https://www.google.com/maps/dir/?api=1`;
 }
 
 /**
