@@ -8,7 +8,6 @@ const COLUMNS = [
     links: [
       { label: "AI Assistant", href: "/dashboard/assistant" },
       { label: "Find Hospitals", href: "/dashboard/hospitals" },
-      { label: "Book Appointment", href: "/dashboard/appointments" },
       { label: "Health Records", href: "/dashboard/records" },
       { label: "Medicine Reminders", href: "/dashboard/medicines" },
     ],
@@ -41,8 +40,8 @@ export function Footer() {
           <div className="lg:col-span-2">
             <Logo />
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted-foreground">
-              An AI-powered healthcare accessibility platform helping patients book care, manage records, and stay
-              healthy — anywhere, anytime.
+              An AI-powered healthcare accessibility platform helping patients find care, manage records, and stay
+              on top of their health — anywhere, anytime.
             </p>
             <div className="mt-6 inline-flex items-center gap-2 rounded-full border bg-card px-4 py-2 text-xs text-muted-foreground">
               <HeartPulse className="h-4 w-4 text-red-500" />

@@ -27,8 +27,8 @@ const STEPS = [
   {
     icon: CalendarCheck2,
     step: "04",
-    title: "Book & stay on track",
-    description: "Book an appointment, get confirmed, and let smart reminders handle your medicines going forward.",
+    title: "Stay on track",
+    description: "Keep your medical records organized and let smart reminders handle your medicines going forward.",
   },
 ];
 

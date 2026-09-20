@@ -22,8 +22,8 @@ const FEATURES: { icon: LucideIcon; title: string; description: string; gradient
   },
   {
     icon: CalendarHeart,
-    title: "Smart Appointments",
-    description: "Find the right doctor, pick a slot from live availability and book in under a minute — in-person or video.",
+    title: "Easy Access",
+    description: "Browse our network of top-tier hospitals and specialists to find exactly the care you need.",
     gradient: "from-teal to-emerald-500",
   },
   {

@@ -18,8 +18,8 @@ const floatingCards = [
   },
   {
     icon: CalendarHeart,
-    title: "Appointment booked",
-    desc: "Dr. Mehta · 10:30 AM",
+    title: "Medicine Reminder",
+    desc: "Aspirin · 10:00 AM",
     className: "top-1/2 -right-6 md:-right-12",
     delay: 0.35,
   },
@@ -97,7 +97,7 @@ export function Hero() {
             transition={{ duration: 0.7, delay: 0.2 }}
             className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground"
           >
-            Book appointments, store medical records, get AI health guidance and never miss a dose —
+            Find nearby hospitals, store medical records, get AI health guidance and never miss a dose —
             all in one beautifully simple platform. Care that&apos;s always a tap away.
           </motion.p>
 
@@ -156,7 +156,7 @@ export function Hero() {
                   </div>
                   <div className="grid grid-cols-3 gap-3">
                     {[
-                      { label: "Appointments", icon: "📅", gradient: "from-primary/10 to-sky-500/10" },
+                      { label: "Find Care", icon: "🏥", gradient: "from-primary/10 to-sky-500/10" },
                       { label: "Health records", icon: "📄", gradient: "from-teal/10 to-emerald-500/10" },
                       { label: "Reminders", icon: "💊", gradient: "from-amber-500/10 to-orange-500/10" },
                     ].map((s, i) => (

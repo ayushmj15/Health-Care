@@ -1,7 +1,8 @@
 "use client";
 
-import { CalendarPlus, ExternalLink, MapPin, MessageCircle, Navigation, Phone, Star } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
+import { CalendarPlus, ExternalLink, MapPin, MessageCircle, Navigation, Phone, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { hospitalDirectionsUrl, whatsappUrl } from "@/lib/maps";
@@ -73,11 +74,14 @@ export function HospitalCard({ hospital, selected, onSelect }: { hospital: Hospi
 
       {/* Actions */}
       <div className="mt-3 flex items-center gap-2 border-t pt-3">
-        <Button size="sm" variant={hospital.emergency ? "destructive" : "default"} asChild className="flex-1 text-xs">
-          <Link href={`/dashboard/appointments?hospital=${hospital.id}`}>
-            <CalendarPlus className="h-3.5 w-3.5" />
-            Book
-          </Link>
+        <Button 
+          size="sm" 
+          variant={hospital.emergency ? "destructive" : "default"} 
+          className="flex-1 text-xs"
+          onClick={() => toast.info("Appointment system will be available soon.")}
+        >
+          <CalendarPlus className="h-3.5 w-3.5 mr-1" />
+          Appointments Soon
         </Button>
         <Button size="sm" variant="outline" asChild className="flex-1 text-xs">
           <a href={directionsUrl} target="_blank" rel="noopener noreferrer">
