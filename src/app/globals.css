@@ -44,7 +44,7 @@
   }
 
   .dark {
-    --background: 222 47% 7%;
+    --background: 0 0% 4%;
     --foreground: 210 40% 96%;
     --card: 222 47% 10%;
     --card-foreground: 210 40% 96%;
@@ -106,6 +106,10 @@
 
 @layer utilities {
   /* ── Glassmorphism ── */
+  .glass-premium {
+    @apply bg-white/5 backdrop-blur-3xl border border-white/10 shadow-2xl;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+  }
   .glass {
     @apply bg-white/70 backdrop-blur-xl dark:bg-slate-900/60;
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.06);

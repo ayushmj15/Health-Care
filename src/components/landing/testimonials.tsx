@@ -2,74 +2,48 @@
 
 import { motion } from "framer-motion";
 import { Quote, Star } from "lucide-react";
-import { useRef } from "react";
 import { SectionHeading } from "@/components/shared/section-heading";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { TESTIMONIALS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 28, scale: 0.95 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: {
-      type: "spring" as const,
-      stiffness: 200,
-      damping: 22,
-    },
-  },
-};
+// Duplicate the array to create a seamless infinite loop
+const MARQUEE_ITEMS = [...TESTIMONIALS, ...TESTIMONIALS];
 
 export function Testimonials() {
-  const scrollRef = useRef<HTMLDivElement>(null);
-
   return (
-    <section id="testimonials" className="relative py-24">
-      <div className="container">
+    <section id="testimonials" className="relative py-24 overflow-hidden">
+      <div className="container relative z-10 mb-16">
         <SectionHeading
           eyebrow="Testimonials"
           title="Loved by patients, trusted by doctors"
           description="Hear from the people who use Health Care every day."
         />
+      </div>
 
-        {/* Mobile: Horizontal scroll carousel */}
-        <div
-          ref={scrollRef}
-          className="mt-16 flex gap-5 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory sm:hidden"
-        >
-          {TESTIMONIALS.map((t, i) => (
-            <motion.figure
-              key={t.name}
-              initial={{ opacity: 0, x: 40 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, margin: "-20px" }}
-              transition={{ duration: 0.5, delay: i * 0.08, type: "spring", stiffness: 200, damping: 22 }}
-              className="relative flex w-[85vw] min-w-[85vw] snap-center flex-col justify-between rounded-2xl border bg-card p-6 shadow-3d"
-            >
-              <TestimonialContent t={t} index={i} />
-            </motion.figure>
-          ))}
-        </div>
+      {/* Infinite Marquee Container */}
+      <div className="relative flex w-full overflow-hidden">
+        
+        {/* Left/Right Fade Masks */}
+        <div className="pointer-events-none absolute left-0 top-0 z-10 h-full w-32 bg-gradient-to-r from-background to-transparent" />
+        <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-32 bg-gradient-to-l from-background to-transparent" />
 
-        {/* Desktop: Grid */}
         <motion.div
-          variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1, delayChildren: 0.1 } } }}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-60px" }}
-          className="mt-16 hidden gap-5 sm:grid sm:grid-cols-2 lg:grid-cols-3"
+          className="flex gap-6 w-max pl-6"
+          animate={{ x: ["0%", "-50%"] }}
+          transition={{
+            ease: "linear",
+            duration: 40,
+            repeat: Infinity,
+          }}
         >
-          {TESTIMONIALS.map((t, i) => (
-            <motion.figure
-              key={t.name}
-              variants={cardVariants}
-              whileHover={{ y: -4, transition: { type: "spring", stiffness: 300, damping: 20 } }}
-              className="relative flex flex-col justify-between rounded-2xl border bg-card p-6 shadow-3d transition-shadow hover:shadow-3d-lg"
+          {MARQUEE_ITEMS.map((t, i) => (
+            <div
+              key={`${t.name}-${i}`}
+              className="relative flex w-[350px] md:w-[400px] flex-col justify-between rounded-3xl border border-white/10 glass-premium p-8 shadow-2xl flex-shrink-0 hover:border-white/20 transition-colors"
             >
               <TestimonialContent t={t} index={i} />
-            </motion.figure>
+            </div>
           ))}
         </motion.div>
       </div>
@@ -87,49 +61,36 @@ function TestimonialContent({
   return (
     <>
       <div>
-        <Quote className="h-7 w-7 text-primary/30" />
-        <div className="mt-3 flex gap-0.5">
+        <Quote className="h-8 w-8 text-primary/40 mb-4 drop-shadow-md" />
+        <div className="flex gap-1 mb-4">
           {Array.from({ length: 5 }).map((_, s) => (
-            <motion.div
+            <Star
               key={s}
-              initial={{ opacity: 0, scale: 0, rotate: -72 }}
-              whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
-              viewport={{ once: true }}
-              transition={{
-                delay: index * 0.05 + s * 0.08,
-                type: "spring",
-                stiffness: 300,
-                damping: 15,
-              }}
-            >
-              <Star
-                className={cn(
-                  "h-4 w-4",
-                  s < t.rating
-                    ? "fill-amber-400 text-amber-400"
-                    : "text-muted"
-                )}
-              />
-            </motion.div>
+              className={cn(
+                "h-4 w-4",
+                s < t.rating
+                  ? "fill-amber-400 text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]"
+                  : "text-muted-foreground/30"
+              )}
+            />
           ))}
         </div>
-        <blockquote className="mt-3 text-sm leading-relaxed text-muted-foreground">
+        <blockquote className="text-base leading-relaxed text-muted-foreground">
           &ldquo;{t.quote}&rdquo;
         </blockquote>
       </div>
-      <figcaption className="mt-6 flex items-center gap-3">
+      
+      <figcaption className="mt-8 flex items-center gap-4 border-t border-white/10 pt-6">
         <div className="relative">
-          {/* Gradient ring pulse */}
-          <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-primary to-teal opacity-20 blur-sm animate-pulse" />
-          <Avatar className="relative">
-            <AvatarFallback className="bg-gradient-to-br from-primary to-teal text-white">
+          <Avatar className="relative h-12 w-12 border border-white/10 shadow-lg">
+            <AvatarFallback className="bg-gradient-to-br from-primary to-teal-500 text-white font-bold">
               {t.avatar}
             </AvatarFallback>
           </Avatar>
         </div>
         <div>
-          <p className="text-sm font-semibold">{t.name}</p>
-          <p className="text-xs text-muted-foreground">{t.role}</p>
+          <p className="text-base font-semibold text-white tracking-tight">{t.name}</p>
+          <p className="text-sm text-primary/80">{t.role}</p>
         </div>
       </figcaption>
     </>
