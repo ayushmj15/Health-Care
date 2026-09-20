@@ -33,10 +33,10 @@ export default async function AppointmentsPage({
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Appointments</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Book, manage and track your visits.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Manage and track your visits.</p>
       </div>
 
-      <Tabs defaultValue="book">
+      <Tabs defaultValue="upcoming">
         <TabsList>
           <TabsTrigger value="book">Book new</TabsTrigger>
           <TabsTrigger value="upcoming">Upcoming ({upcoming.length})</TabsTrigger>
@@ -44,12 +44,12 @@ export default async function AppointmentsPage({
         </TabsList>
 
         <TabsContent value="book" className="mt-4">
-          <BookingFlow
-            userId={userId}
-            hospitals={hospitals}
-            doctors={doctors}
-            initialHospitalId={hospital}
-          />
+          <div className="flex flex-col items-center justify-center p-12 text-center border rounded-2xl bg-card h-[400px]">
+            <h2 className="text-xl font-semibold mb-2">Booking System Coming Soon</h2>
+            <p className="text-muted-foreground max-w-md">
+              We are currently integrating with our partner hospitals to bring you real-time online appointment booking. Check back later!
+            </p>
+          </div>
         </TabsContent>
 
         <TabsContent value="upcoming" className="mt-4">
