@@ -12,9 +12,10 @@ import { Button, type ButtonProps } from "@/components/ui/button";
 export function AuthAwareButton({
   href,
   loggedInLabel,
+  hideWhenLoggedIn,
   children,
   ...props
-}: { href: string; loggedInLabel?: string; children: React.ReactNode } & ButtonProps) {
+}: { href: string; loggedInLabel?: string; hideWhenLoggedIn?: boolean; children: React.ReactNode } & ButtonProps) {
   const router = useRouter();
   const [authed, setAuthed] = useState<boolean | null>(null);
 
@@ -55,6 +56,8 @@ export function AuthAwareButton({
       router.push(href);
     }
   }
+
+  if (authed && hideWhenLoggedIn) return null;
 
   return (
     <Button {...props} onClick={go}>

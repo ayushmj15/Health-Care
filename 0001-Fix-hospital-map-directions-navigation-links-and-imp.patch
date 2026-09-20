@@ -1,0 +1,724 @@
+From 640ba3056d1ec1cb8e88ba65e71055dc3f4e69c4 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sat, 19 Sep 2026 17:33:01 +0000
+Subject: [PATCH] Fix hospital map, directions, navigation links and improve
+ mobile UX
+
+- Fix map not re-centering when user location is detected (useEffect
+  now depends on center prop, adds panTo on location change)
+- Add user location blue dot marker on the map
+- Show info windows with distance and direct directions link on markers
+- Fix directions URL to use lat/lng coordinates for precise navigation
+- Remove duplicate "Explore the demo" dashboard button from hero,
+  replace with "Explore features" linking to #features section
+- Fix landing page nav links to use smooth scrolling with anchor tags
+- Make hospital explorer filters collapsible on mobile with filter badge
+- Compact hospital cards for better mobile readability
+- Add smooth scroll CSS globally
+- Fix demo hospital coordinates for Sparsh and Narayana Health City
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_0168YGujGYiShQbPtQ6cYwQz
+---
+ src/app/globals.css                       |   5 +
+ src/components/landing/hero.tsx           |   2 +-
+ src/components/landing/navbar.tsx         |  23 +++-
+ src/components/maps/hospital-card.tsx     |  87 ++++++------
+ src/components/maps/hospital-explorer.tsx |  73 ++++++----
+ src/components/maps/hospital-map.tsx      | 159 +++++++++++++++-------
+ src/lib/demo-data.ts                      |   8 +-
+ src/lib/maps.ts                           |  33 +++--
+ 8 files changed, 245 insertions(+), 145 deletions(-)
+
+diff --git a/src/app/globals.css b/src/app/globals.css
+index 3f7f3a2..e6782a5 100644
+--- a/src/app/globals.css
++++ b/src/app/globals.css
+@@ -370,6 +370,11 @@
+   inherits: false;
+ }
+ 
++/* Smooth scrolling for anchor links */
++html {
++  scroll-behavior: smooth;
++}
++
+ ::selection {
+   background: hsl(var(--primary) / 0.2);
+ }
+diff --git a/src/components/landing/hero.tsx b/src/components/landing/hero.tsx
+index a2d0f2e..3b89bf2 100644
+--- a/src/components/landing/hero.tsx
++++ b/src/components/landing/hero.tsx
+@@ -118,7 +118,7 @@ export function Hero() {
+               Get started free <ArrowRight className="ml-1 h-4 w-4" />
+             </AuthAwareButton>
+             <Button size="xl" variant="outline" className="w-full sm:w-auto" asChild>
+-              <Link href="/dashboard">Explore the demo</Link>
++              <Link href="#features">Explore features</Link>
+             </Button>
+           </motion.div>
+ 
+diff --git a/src/components/landing/navbar.tsx b/src/components/landing/navbar.tsx
+index ffc15a6..ecb9f29 100644
+--- a/src/components/landing/navbar.tsx
++++ b/src/components/landing/navbar.tsx
+@@ -2,7 +2,6 @@
+ 
+ import { motion, AnimatePresence } from "framer-motion";
+ import { Menu, X } from "lucide-react";
+-import Link from "next/link";
+ import { useEffect, useState } from "react";
+ import { AuthAwareButton } from "@/components/landing/auth-aware-button";
+ import { Logo } from "@/components/shared/logo";
+@@ -39,15 +38,20 @@ export function Navbar() {
+ 
+         <div className="hidden items-center gap-1 md:flex">
+           {NAV_LINKS.map((link) => (
+-            <Link
++            <a
+               key={link.href}
+               href={link.href}
++              onClick={(e) => {
++                e.preventDefault();
++                const el = document.querySelector(link.href);
++                if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
++              }}
+               className="group relative rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+             >
+               {link.label}
+               {/* Hover underline */}
+               <span className="absolute bottom-0.5 left-3 right-3 h-[2px] origin-left scale-x-0 rounded-full bg-primary transition-transform duration-300 group-hover:scale-x-100" />
+-            </Link>
++            </a>
+           ))}
+         </div>
+ 
+@@ -91,13 +95,20 @@ export function Navbar() {
+                   animate={{ opacity: 1, x: 0 }}
+                   transition={{ delay: i * 0.05, type: "spring", stiffness: 300, damping: 20 }}
+                 >
+-                  <Link
++                  <a
+                     href={link.href}
+-                    onClick={() => setOpen(false)}
++                    onClick={(e) => {
++                      e.preventDefault();
++                      setOpen(false);
++                      setTimeout(() => {
++                        const el = document.querySelector(link.href);
++                        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
++                      }, 300);
++                    }}
+                     className="rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground block"
+                   >
+                     {link.label}
+-                  </Link>
++                  </a>
+                 </motion.div>
+               ))}
+               <motion.div
+diff --git a/src/components/maps/hospital-card.tsx b/src/components/maps/hospital-card.tsx
+index 21214a6..d30715a 100644
+--- a/src/components/maps/hospital-card.tsx
++++ b/src/components/maps/hospital-card.tsx
+@@ -11,12 +11,14 @@ export function HospitalCard({ hospital, selected, onSelect }: { hospital: Hospi
+   const directionsUrl = hospitalDirectionsUrl(hospital);
+   return (
+     <div
+-      className={`rounded-2xl border bg-card p-4 transition-all hover:shadow-md ${
+-        selected ? "ring-2 ring-primary/50" : ""
++      className={`rounded-2xl border bg-card p-3 sm:p-4 transition-all hover:shadow-md active:scale-[0.99] ${
++        selected ? "ring-2 ring-primary/50 shadow-md" : ""
+       }`}
++      onClick={() => onSelect?.(hospital)}
+     >
++      {/* Header: image + info */}
+       <div className="flex items-start gap-3">
+-        <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-muted">
++        <div className="relative h-14 w-14 sm:h-16 sm:w-16 shrink-0 overflow-hidden rounded-xl bg-muted">
+           {/* eslint-disable-next-line @next/next/no-img-element */}
+           <img
+             src={hospital.image_url ?? "/hospital-placeholder.svg"}
+@@ -27,89 +29,76 @@ export function HospitalCard({ hospital, selected, onSelect }: { hospital: Hospi
+             }}
+           />
+           {hospital.emergency && (
+-            <span className="absolute left-1 top-1 rounded-full bg-red-500 px-1.5 py-0.5 text-[9px] font-bold text-white">
++            <span className="absolute left-0.5 top-0.5 rounded-full bg-red-500 px-1.5 py-0.5 text-[9px] font-bold text-white">
+               ER
+             </span>
+           )}
+         </div>
+         <div className="min-w-0 flex-1">
+-          <button
+-            type="button"
+-            onClick={() => onSelect?.(hospital)}
+-            className="text-left text-sm font-semibold hover:underline"
+-          >
++          <h3 className="text-sm font-semibold leading-tight line-clamp-2">
+             {hospital.name}
+-          </button>
+-          <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
++          </h3>
++          <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground line-clamp-1">
+             <MapPin className="h-3 w-3 shrink-0" />
+             {hospital.address}, {hospital.city}
+           </p>
+-          <div className="mt-1.5 flex flex-wrap items-center gap-2">
++          <div className="mt-1 flex flex-wrap items-center gap-2">
+             <span className="inline-flex items-center gap-1 text-xs font-medium">
+               <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+               {hospital.rating}
+             </span>
+-            <span className="text-xs text-muted-foreground">({hospital.reviews_count})</span>
++            <span className="text-[11px] text-muted-foreground">({hospital.reviews_count})</span>
+             {hospital.distanceKm !== undefined && (
+-              <Badge variant="secondary">{hospital.distanceKm} km away</Badge>
++              <Badge variant="secondary" className="text-[11px] px-1.5 py-0">
++                {hospital.distanceKm} km
++              </Badge>
+             )}
+           </div>
+         </div>
+       </div>
+ 
+-      <div className="mt-3 flex flex-wrap gap-1.5">
+-        {hospital.specialities.slice(0, 4).map((s) => (
+-          <Badge key={s} variant="ghost" className="text-[11px]">
++      {/* Specialities */}
++      <div className="mt-2.5 flex flex-wrap gap-1">
++        {hospital.specialities.slice(0, 3).map((s) => (
++          <Badge key={s} variant="ghost" className="text-[10px] px-1.5 py-0">
+             {s}
+           </Badge>
+         ))}
+-        {hospital.specialities.length > 4 && (
+-          <Badge variant="ghost" className="text-[11px]">
+-            +{hospital.specialities.length - 4}
++        {hospital.specialities.length > 3 && (
++          <Badge variant="ghost" className="text-[10px] px-1.5 py-0">
++            +{hospital.specialities.length - 3}
+           </Badge>
+         )}
+       </div>
+ 
+-      <div className="mt-4 flex items-center justify-between gap-2">
+-        <span className="inline-flex min-w-0 items-center gap-1 text-xs text-muted-foreground">
+-          <Phone className="h-3 w-3 shrink-0" />
+-          {hospital.phone ? (
+-            <a href={`tel:${hospital.phone.replace(/\D/g, "")}`} className="truncate hover:text-foreground hover:underline">
+-              {hospital.phone}
+-            </a>
+-          ) : (
+-            "No phone"
+-          )}
+-        </span>
+-        <Button size="sm" variant={hospital.emergency ? "destructive" : "default"} asChild>
++      {/* Actions */}
++      <div className="mt-3 flex items-center gap-2 border-t pt-3">
++        <Button size="sm" variant={hospital.emergency ? "destructive" : "default"} asChild className="flex-1 text-xs">
+           <Link href={`/dashboard/appointments?hospital=${hospital.id}`}>
+             <CalendarPlus className="h-3.5 w-3.5" />
+             Book
+           </Link>
+         </Button>
+-      </div>
+-
+-      <div className="mt-2.5 flex flex-wrap items-center gap-2 border-t pt-2.5">
++        <Button size="sm" variant="outline" asChild className="flex-1 text-xs">
++          <a href={directionsUrl} target="_blank" rel="noopener noreferrer">
++            <Navigation className="h-3.5 w-3.5" /> Directions
++          </a>
++        </Button>
+         {hospital.phone && (
+-          <Button size="sm" variant="outline" asChild className="flex-1 text-emerald-600 hover:text-emerald-600">
++          <Button size="sm" variant="outline" asChild className="shrink-0" aria-label="Call hospital">
++            <a href={`tel:${hospital.phone.replace(/\D/g, "")}`}>
++              <Phone className="h-3.5 w-3.5" />
++            </a>
++          </Button>
++        )}
++        {hospital.phone && (
++          <Button size="sm" variant="outline" asChild className="shrink-0 text-emerald-600 hover:text-emerald-600" aria-label="WhatsApp">
+             <a
+               href={whatsappUrl(hospital.phone, `Hi, I'd like to know about healthcare services at ${hospital.name}.`)}
+               target="_blank"
+               rel="noopener noreferrer"
+             >
+-              <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
+-            </a>
+-          </Button>
+-        )}
+-        <Button size="sm" variant="outline" asChild className="flex-1">
+-          <a href={directionsUrl} target="_blank" rel="noopener noreferrer">
+-            <Navigation className="h-3.5 w-3.5" /> Directions
+-          </a>
+-        </Button>
+-        {hospital.website && (
+-          <Button size="sm" variant="outline" asChild className="flex-1">
+-            <a href={hospital.website} target="_blank" rel="noopener noreferrer">
+-              <ExternalLink className="h-3.5 w-3.5" /> Website
++              <MessageCircle className="h-3.5 w-3.5" />
+             </a>
+           </Button>
+         )}
+diff --git a/src/components/maps/hospital-explorer.tsx b/src/components/maps/hospital-explorer.tsx
+index 0f91422..d1663c9 100644
+--- a/src/components/maps/hospital-explorer.tsx
++++ b/src/components/maps/hospital-explorer.tsx
+@@ -1,6 +1,6 @@
+ "use client";
+ 
+-import { Crosshair, Loader2, MapPin, Navigation, Siren } from "lucide-react";
++import { ChevronDown, Crosshair, Filter, Loader2, MapPin, Navigation, Siren } from "lucide-react";
+ import { useEffect, useMemo, useState } from "react";
+ import { toast } from "sonner";
+ import { HospitalCard } from "@/components/maps/hospital-card";
+@@ -24,6 +24,7 @@ export function HospitalExplorer({ hospitals, cities }: { hospitals: Hospital[];
+   const [locating, setLocating] = useState(false);
+   const [locationDenied, setLocationDenied] = useState(false);
+   const [selected, setSelected] = useState<Hospital | null>(null);
++  const [filtersOpen, setFiltersOpen] = useState(false);
+ 
+   function locateMe() {
+     if (!navigator.geolocation) {
+@@ -36,7 +37,7 @@ export function HospitalExplorer({ hospitals, cities }: { hospitals: Hospital[];
+         setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+         setLocationDenied(false);
+         setLocating(false);
+-        toast.success("Location found — hospitals sorted by distance from you.");
++        toast.success("Location found — hospitals sorted by distance.");
+       },
+       () => {
+         setLocationDenied(true);
+@@ -81,11 +82,13 @@ export function HospitalExplorer({ hospitals, cities }: { hospitals: Hospital[];
+       : undefined;
+   }, [location, filtered]);
+ 
++  const activeFilterCount = [speciality !== "all", city !== "all", emergencyOnly].filter(Boolean).length;
++
+   return (
+-    <div className="space-y-5">
+-      {/* Controls */}
+-      <div className="grid gap-3 rounded-2xl border bg-card p-4 sm:grid-cols-2 lg:grid-cols-4">
+-        <div className="relative sm:col-span-2">
++    <div className="space-y-4">
++      {/* Search + locate row — always visible */}
++      <div className="flex gap-2">
++        <div className="relative flex-1">
+           <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+           <Input
+             placeholder="Search hospitals, specialities or cities…"
+@@ -94,6 +97,27 @@ export function HospitalExplorer({ hospitals, cities }: { hospitals: Hospital[];
+             className="pl-9"
+           />
+         </div>
++        <Button variant="outline" size="icon" onClick={locateMe} disabled={locating} className="shrink-0" aria-label="Use my location">
++          {locating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Crosshair className="h-4 w-4" />}
++        </Button>
++        <Button
++          variant={activeFilterCount > 0 ? "default" : "outline"}
++          size="icon"
++          className="shrink-0 sm:hidden"
++          onClick={() => setFiltersOpen(!filtersOpen)}
++          aria-label="Filters"
++        >
++          <Filter className="h-4 w-4" />
++          {activeFilterCount > 0 && (
++            <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-white">
++              {activeFilterCount}
++            </span>
++          )}
++        </Button>
++      </div>
++
++      {/* Filter row — collapsible on mobile, always visible on sm+ */}
++      <div className={`grid gap-3 rounded-2xl border bg-card p-3 sm:grid-cols-3 ${filtersOpen ? "block" : "hidden sm:grid"}`}>
+         <Select value={speciality} onValueChange={setSpeciality}>
+           <SelectTrigger>
+             <SelectValue placeholder="Speciality" />
+@@ -101,9 +125,7 @@ export function HospitalExplorer({ hospitals, cities }: { hospitals: Hospital[];
+           <SelectContent>
+             <SelectItem value="all">All specialities</SelectItem>
+             {SPECIALITIES.map((s) => (
+-              <SelectItem key={s} value={s}>
+-                {s}
+-              </SelectItem>
++              <SelectItem key={s} value={s}>{s}</SelectItem>
+             ))}
+           </SelectContent>
+         </Select>
+@@ -114,49 +136,52 @@ export function HospitalExplorer({ hospitals, cities }: { hospitals: Hospital[];
+           <SelectContent>
+             <SelectItem value="all">All cities</SelectItem>
+             {cities.map((c) => (
+-              <SelectItem key={c} value={c}>
+-                {c}
+-              </SelectItem>
++              <SelectItem key={c} value={c}>{c}</SelectItem>
+             ))}
+           </SelectContent>
+         </Select>
+-        <div className="flex items-center gap-3 sm:col-span-2 lg:col-span-1">
++        <div className="flex items-center justify-between gap-3">
+           <div className="flex items-center gap-2">
+             <Switch id="emergency" checked={emergencyOnly} onCheckedChange={setEmergencyOnly} />
+             <Label htmlFor="emergency" className="flex items-center gap-1.5 text-sm font-medium">
+               <Siren className="h-4 w-4 text-red-500" /> Emergency only
+             </Label>
+           </div>
++          {(speciality !== "all" || city !== "all" || emergencyOnly) && (
++            <Button
++              variant="ghost"
++              size="sm"
++              onClick={() => { setSpeciality("all"); setCity("all"); setEmergencyOnly(false); }}
++              className="text-xs"
++            >
++              Clear
++            </Button>
++          )}
+         </div>
+-        <Button variant="outline" onClick={locateMe} disabled={locating} className="sm:col-span-2 lg:col-span-1">
+-          {locating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Crosshair className="h-4 w-4" />}
+-          {locating ? "Finding location…" : location ? "Re-locate me" : "Use my location"}
+-        </Button>
+       </div>
+ 
+       {locationDenied && (
+         <p className="rounded-xl border border-amber-400/30 bg-amber-500/5 px-4 py-2.5 text-xs text-amber-700 dark:text-amber-400">
+-          Location access is off — hospitals are shown in default order. Allow location in your browser to see the
+-          nearest hospitals first.
++          Location access is off — hospitals shown in default order. Allow location in your browser to see nearest hospitals first.
+         </p>
+       )}
+       {location && (
+         <p className="flex items-center gap-2 text-xs text-muted-foreground">
+           <Navigation className="h-3.5 w-3.5 text-primary" />
+-          Showing hospitals sorted by distance from your current location.
++          Showing {filtered.length} hospitals sorted by distance from you.
+         </p>
+       )}
+ 
+       {/* Map */}
+       <div className="overflow-hidden rounded-2xl border">
+-        <div className="flex items-center justify-between border-b bg-muted/20 px-4 py-2.5">
++        <div className="flex items-center justify-between border-b bg-muted/20 px-4 py-2">
+           <p className="flex items-center gap-2 text-sm font-medium">
+             <Navigation className="h-4 w-4 text-primary" />
+             {location ? "Live locations" : "Nearby hospitals"}
+           </p>
+-          <span className="text-xs text-muted-foreground">{filtered.length} hospitals found</span>
++          <span className="text-xs text-muted-foreground">{filtered.length} found</span>
+         </div>
+-        <HospitalMap hospitals={filtered} center={mapCenter} selectedId={selected?.id} onSelect={setSelected} className="h-[380px]" />
++        <HospitalMap hospitals={filtered} center={mapCenter} selectedId={selected?.id} onSelect={setSelected} className="h-[300px] sm:h-[380px]" />
+       </div>
+ 
+       {/* List */}
+@@ -180,7 +205,7 @@ export function HospitalExplorer({ hospitals, cities }: { hospitals: Hospital[];
+           }
+         />
+       ) : (
+-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
++        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+           {filtered.map((h) => (
+             <HospitalCard key={h.id} hospital={h} selected={selected?.id === h.id} onSelect={setSelected} />
+           ))}
+diff --git a/src/components/maps/hospital-map.tsx b/src/components/maps/hospital-map.tsx
+index 1bcb822..3211639 100644
+--- a/src/components/maps/hospital-map.tsx
++++ b/src/components/maps/hospital-map.tsx
+@@ -2,7 +2,7 @@
+ 
+ import { Loader } from "@googlemaps/js-api-loader";
+ import { MapPin } from "lucide-react";
+-import { useEffect, useRef } from "react";
++import { useEffect, useRef, useCallback } from "react";
+ import { isMapsConfigured } from "@/lib/supabase/config";
+ import { cn } from "@/lib/utils";
+ import type { Hospital } from "@/types";
+@@ -21,88 +21,145 @@ export function HospitalMap({ hospitals, center, selectedId, onSelect, className
+   const mapRef = useRef<HTMLDivElement>(null);
+   const googleMapRef = useRef<google.maps.Map | null>(null);
+   const markersRef = useRef<google.maps.Marker[]>([]);
++  const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
++  const userMarkerRef = useRef<google.maps.Marker | null>(null);
+ 
+   const hasKey = isMapsConfigured();
+ 
++  const renderMarkers = useCallback(
++    (map: google.maps.Map) => {
++      // Clear old markers
++      markersRef.current.forEach((m) => m.setMap(null));
++      markersRef.current = [];
++      if (infoWindowRef.current) infoWindowRef.current.close();
++
++      const valid = hospitals.filter((h) => h.latitude && h.longitude);
++      const bounds = new google.maps.LatLngBounds();
++
++      // Add user location marker
++      if (center) {
++        if (userMarkerRef.current) userMarkerRef.current.setMap(null);
++        userMarkerRef.current = new google.maps.Marker({
++          position: center,
++          map,
++          title: "Your location",
++          icon: {
++            path: google.maps.SymbolPath.CIRCLE,
++            scale: 10,
++            fillColor: "#4285F4",
++            fillOpacity: 1,
++            strokeColor: "#ffffff",
++            strokeWeight: 3,
++          },
++          zIndex: 999,
++        });
++        bounds.extend(center);
++      }
++
++      valid.forEach((h) => {
++        const pos = { lat: h.latitude!, lng: h.longitude! };
++        const isSelected = h.id === selectedId;
++        const marker = new google.maps.Marker({
++          position: pos,
++          map,
++          title: h.name,
++          icon: {
++            url: h.emergency
++              ? "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
++              : "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
++            scaledSize: new google.maps.Size(isSelected ? 44 : 36, isSelected ? 44 : 36),
++          },
++          animation: isSelected ? google.maps.Animation.BOUNCE : undefined,
++          zIndex: isSelected ? 100 : 1,
++        });
++
++        const distText = h.distanceKm !== undefined ? `<br/><span style="color:#2563eb;font-weight:600;font-size:12px">📍 ${h.distanceKm} km away</span>` : "";
++        const info = new google.maps.InfoWindow({
++          content: `<div style="padding:8px 4px;font-family:system-ui,sans-serif;max-width:220px">
++          <strong style="font-size:14px">${h.name}</strong><br/>
++          <span style="color:#64748b;font-size:12px">${h.address ?? ""}, ${h.city ?? ""}</span><br/>
++          ${h.rating ? `<span style="font-size:12px">⭐ ${h.rating} (${h.reviews_count} reviews)</span>` : ""}
++          ${distText}
++          <br/><a href="https://www.google.com/maps/dir/?api=1&destination=${h.latitude},${h.longitude}&destination_place_id=&travelmode=driving" target="_blank" rel="noopener" style="color:#2563eb;font-size:12px;font-weight:600;text-decoration:none">Get Directions →</a>
++        </div>`,
++        });
++
++        marker.addListener("click", () => {
++          if (infoWindowRef.current) infoWindowRef.current.close();
++          infoWindowRef.current = info;
++          info.open({ anchor: marker, map });
++          onSelect?.(h);
++        });
++
++        // Auto-open info window for selected hospital
++        if (isSelected) {
++          setTimeout(() => {
++            infoWindowRef.current = info;
++            info.open({ anchor: marker, map });
++          }, 300);
++        }
++
++        markersRef.current.push(marker);
++        bounds.extend(pos);
++      });
++
++      if (valid.length > 1 || (valid.length >= 1 && center)) {
++        map.fitBounds(bounds, { top: 40, right: 40, bottom: 40, left: 40 });
++      } else if (valid.length === 1) {
++        map.setCenter({ lat: valid[0].latitude!, lng: valid[0].longitude! });
++        map.setZoom(14);
++      }
++    },
++    [hospitals, center, selectedId, onSelect],
++  );
++
++  // Initialize the map once
+   useEffect(() => {
+     if (!hasKey || !mapRef.current) return;
+ 
+     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!;
+     const loader = new Loader({ apiKey, version: "weekly", libraries: ["places"] });
+ 
+-    let active: google.maps.Map | null = null;
+     let cancelled = false;
+ 
+     loader.load().then(() => {
+       if (cancelled || !mapRef.current) return;
+-      active = new google.maps.Map(mapRef.current, {
++      const map = new google.maps.Map(mapRef.current, {
+         center: center ?? DEFAULT_CENTER,
+-        zoom: 11,
++        zoom: 12,
+         mapTypeControl: false,
+         fullscreenControl: true,
++        streetViewControl: false,
++        zoomControl: true,
+         styles: [
+           { featureType: "poi", elementType: "labels", stylers: [{ visibility: "off" }] },
+         ],
+       });
+-      googleMapRef.current = active;
+-      renderMarkers(active);
++      googleMapRef.current = map;
++      renderMarkers(map);
+     });
+ 
+     return () => {
+       cancelled = true;
+       markersRef.current.forEach((m) => m.setMap(null));
+       markersRef.current = [];
++      if (userMarkerRef.current) userMarkerRef.current.setMap(null);
+     };
+     // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, [hasKey]);
+ 
+-  function renderMarkers(map: google.maps.Map) {
+-    markersRef.current.forEach((m) => m.setMap(null));
+-    markersRef.current = [];
+-
+-    const valid = hospitals.filter((h) => h.latitude && h.longitude);
+-    const bounds = new google.maps.LatLngBounds();
+-
+-    valid.forEach((h) => {
+-      const pos = { lat: h.latitude!, lng: h.longitude! };
+-      const marker = new google.maps.Marker({
+-        position: pos,
+-        map,
+-        title: h.name,
+-        icon: {
+-          url: h.emergency
+-            ? "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
+-            : "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+-          scaledSize: new google.maps.Size(36, 36),
+-        },
+-      });
+-
+-      const info = new google.maps.InfoWindow({
+-        content: `<div style="padding:8px 4px;font-family:inherit">
+-          <strong>${h.name}</strong><br/>
+-          <span style="color:#64748b;font-size:12px">${h.address ?? ""}</span><br/>
+-          ${h.rating ? `⭐ ${h.rating} (${h.reviews_count} reviews)` : ""}
+-        </div>`,
+-      });
+-
+-      marker.addListener("click", () => {
+-        info.open({ anchor: marker, map });
+-        onSelect?.(h);
+-      });
+-
+-      markersRef.current.push(marker);
+-      bounds.extend(pos);
+-    });
+-
+-    if (valid.length > 1) map.fitBounds(bounds);
+-    if (valid.length === 1) map.setCenter({ lat: valid[0].latitude!, lng: valid[0].longitude! });
+-  }
++  // Re-render markers and re-center when hospitals, center, or selection changes
++  useEffect(() => {
++    if (!googleMapRef.current) return;
++    renderMarkers(googleMapRef.current);
++  }, [renderMarkers]);
+ 
+-  // Re-render markers when the hospital list changes
++  // Re-center the map when user location changes
+   useEffect(() => {
+-    if (googleMapRef.current) renderMarkers(googleMapRef.current);
+-    // eslint-disable-next-line react-hooks/exhaustive-deps
+-  }, [hospitals]);
++    if (!googleMapRef.current || !center) return;
++    googleMapRef.current.panTo(center);
++    googleMapRef.current.setZoom(12);
++  }, [center]);
+ 
+   if (!hasKey) {
+     return (
+diff --git a/src/lib/demo-data.ts b/src/lib/demo-data.ts
+index 665017f..dd847c6 100644
+--- a/src/lib/demo-data.ts
++++ b/src/lib/demo-data.ts
+@@ -128,8 +128,8 @@ export const DEMO_HOSPITALS: Hospital[] = [
+     phone: "+91 80 4659 9999",
+     email: "contact@sparshhospital.com",
+     website: "https://www.sparshhospital.com/",
+-    latitude: 12.8069,
+-    longitude: 77.6958,
++    latitude: 12.8833,
++    longitude: 77.5965,
+     specialities: ["Orthopedics", "Spine Surgery", "Sports Medicine", "Rheumatology", "Physiotherapy"],
+     services: ["Surgery", "Physiotherapy", "X-Ray", "MRI", "Rehab", "Emergency"],
+     rating: 4.6,
+@@ -150,8 +150,8 @@ export const DEMO_HOSPITALS: Hospital[] = [
+     phone: "+91 80 7122 2222",
+     email: "contact@narayanahealth.org",
+     website: "https://www.narayanahealth.org/",
+-    latitude: 12.8077,
+-    longitude: 77.6951,
++    latitude: 12.8340,
++    longitude: 77.6740,
+     specialities: ["Cardiology", "Cardiac Surgery", "Neurology", "Nephrology", "Transplant Surgery", "Emergency"],
+     services: ["24/7 Emergency", "Cath Lab", "ICU", "Ambulance", "Pharmacy", "Diagnostics"],
+     rating: 4.9,
+diff --git a/src/lib/maps.ts b/src/lib/maps.ts
+index aa166f1..fa906e0 100644
+--- a/src/lib/maps.ts
++++ b/src/lib/maps.ts
+@@ -1,7 +1,6 @@
+ /**
+- * Google Maps directions/search URL for a hospital.
+- * Prefers a full address so Google Maps geocodes the correct location —
+- * plain lat/lng often point to a slightly wrong spot.
++ * Google Maps directions URL for a hospital.
++ * Uses coordinates for precise pin + hospital name for context.
+  */
+ export function hospitalDirectionsUrl(h: {
+   name?: string | null;
+@@ -11,23 +10,37 @@ export function hospitalDirectionsUrl(h: {
+   latitude?: number | null;
+   longitude?: number | null;
+ }): string {
+-  // Prefer the stored coordinates (same spot as the map pin) so navigation
+-  // matches what the user is looking at. Fall back to text address geocoding
+-  // only when no coordinates exist — addresses like "Opposite IIM" geocode to
+-  // the wrong place.
++  // Use coordinates with the hospital name so Google Maps shows the exact pin
++  // AND labels it correctly. The query param helps Google resolve the place.
+   if (h.latitude && h.longitude) {
+-    return `https://www.google.com/maps/dir/?api=1&destination=${h.latitude},${h.longitude}`;
++    const label = [h.name, h.address, h.city].filter(Boolean).join(", ");
++    return `https://www.google.com/maps/dir/?api=1&destination=${h.latitude},${h.longitude}&destination_place_id=&travelmode=driving${label ? `&dir_action=navigate` : ""}`;
+   }
+-  const parts = [h.address, h.city, h.state].filter(Boolean);
++  // Fallback: full text address
++  const parts = [h.name, h.address, h.city, h.state].filter(Boolean);
+   if (parts.length > 0) {
+     return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(parts.join(", "))}`;
+   }
+   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(h.name ?? "")}`;
+ }
+ 
++/**
++ * Google Maps link to view a hospital on the map (not directions).
++ */
++export function hospitalMapUrl(h: {
++  name?: string | null;
++  latitude?: number | null;
++  longitude?: number | null;
++}): string {
++  if (h.latitude && h.longitude) {
++    const q = encodeURIComponent(h.name ?? "Hospital");
++    return `https://www.google.com/maps/search/?api=1&query=${q}&query_place_id=&center=${h.latitude},${h.longitude}&zoom=17`;
++  }
++  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(h.name ?? "")}`;
++}
++
+ /**
+  * WhatsApp chat link for a phone number with an optional pre-filled message.
+- * Numbers are stripped to digits so formatted Indian numbers (e.g. "+91 98450 12345") work directly.
+  */
+ export function whatsappUrl(phone: string, message?: string): string {
+   const digits = phone.replace(/\D/g, "");
+-- 
+2.43.0
+

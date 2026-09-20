@@ -57,7 +57,7 @@ export function Navbar() {
 
         <div className="hidden items-center gap-2 md:flex">
           <ThemeToggle />
-          <AuthAwareButton href="/login" loggedInLabel="Dashboard" variant="ghost">
+          <AuthAwareButton href="/login" loggedInLabel="Dashboard" hideWhenLoggedIn={true} variant="ghost">
             Log in
           </AuthAwareButton>
           <AuthAwareButton href="/signup" loggedInLabel="Dashboard">
@@ -118,7 +118,7 @@ export function Navbar() {
                 className="mt-2 flex flex-col gap-2 border-t pt-4"
               >
                 <div className="flex gap-2">
-                  <AuthAwareButton href="/login" loggedInLabel="Dashboard" variant="outline" className="flex-1">
+                  <AuthAwareButton href="/login" loggedInLabel="Dashboard" hideWhenLoggedIn={true} variant="outline" className="flex-1">
                     Log in
                   </AuthAwareButton>
                   <AuthAwareButton href="/signup" loggedInLabel="Dashboard" className="flex-1">

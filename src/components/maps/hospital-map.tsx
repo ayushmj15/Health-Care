@@ -67,10 +67,9 @@ export function HospitalMap({ hospitals, center, selectedId, onSelect, className
             url: h.emergency
               ? "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
               : "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
-            scaledSize: new google.maps.Size(isSelected ? 44 : 36, isSelected ? 44 : 36),
+            scaledSize: new google.maps.Size(36, 36),
           },
-          animation: isSelected ? google.maps.Animation.BOUNCE : undefined,
-          zIndex: isSelected ? 100 : 1,
+          zIndex: 1,
         });
 
         const distText = h.distanceKm !== undefined ? `<br/><span style="color:#2563eb;font-weight:600;font-size:12px">📍 ${h.distanceKm} km away</span>` : "";
@@ -91,14 +90,6 @@ export function HospitalMap({ hospitals, center, selectedId, onSelect, className
           onSelect?.(h);
         });
 
-        // Auto-open info window for selected hospital
-        if (isSelected) {
-          setTimeout(() => {
-            infoWindowRef.current = info;
-            info.open({ anchor: marker, map });
-          }, 300);
-        }
-
         markersRef.current.push(marker);
         bounds.extend(pos);
       });
@@ -110,7 +101,7 @@ export function HospitalMap({ hospitals, center, selectedId, onSelect, className
         map.setZoom(14);
       }
     },
-    [hospitals, center, selectedId, onSelect],
+    [hospitals, center, onSelect],
   );
 
   // Initialize the map once
@@ -148,18 +139,36 @@ export function HospitalMap({ hospitals, center, selectedId, onSelect, className
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasKey]);
 
-  // Re-render markers and re-center when hospitals, center, or selection changes
+  // Render markers only when hospitals or center changes
   useEffect(() => {
     if (!googleMapRef.current) return;
     renderMarkers(googleMapRef.current);
   }, [renderMarkers]);
 
-  // Re-center the map when user location changes
+  // Handle selection changes separately
   useEffect(() => {
-    if (!googleMapRef.current || !center) return;
-    googleMapRef.current.panTo(center);
-    googleMapRef.current.setZoom(12);
-  }, [center]);
+    if (!googleMapRef.current || !selectedId || markersRef.current.length === 0) return;
+    const map = googleMapRef.current;
+    
+    // Find the marker that matches the selectedId
+    const selectedHospital = hospitals.find(h => h.id === selectedId);
+    if (!selectedHospital || !selectedHospital.latitude || !selectedHospital.longitude) return;
+    
+    const pos = { lat: selectedHospital.latitude, lng: selectedHospital.longitude };
+    map.panTo(pos);
+    map.setZoom(14);
+    
+    // Find the actual marker object to open its info window
+    const markerIndex = hospitals.filter(h => h.latitude && h.longitude).findIndex(h => h.id === selectedId);
+    if (markerIndex >= 0 && markersRef.current[markerIndex]) {
+      const marker = markersRef.current[markerIndex];
+      marker.setAnimation(google.maps.Animation.BOUNCE);
+      setTimeout(() => marker.setAnimation(null), 2100); // Stop bouncing after 3 bounces
+      
+      // Auto-open info window if needed, though clicking usually opens it anyway
+      // To keep it simple, we just pan and bounce.
+    }
+  }, [selectedId, hospitals]);
 
   if (!hasKey) {
     return (

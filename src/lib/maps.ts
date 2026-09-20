@@ -13,8 +13,7 @@ export function hospitalDirectionsUrl(h: {
   // Use coordinates with the hospital name so Google Maps shows the exact pin
   // AND labels it correctly. The query param helps Google resolve the place.
   if (h.latitude && h.longitude) {
-    const label = [h.name, h.address, h.city].filter(Boolean).join(", ");
-    return `https://www.google.com/maps/dir/?api=1&destination=${h.latitude},${h.longitude}&destination_place_id=&travelmode=driving${label ? `&dir_action=navigate` : ""}`;
+    return `https://www.google.com/maps/dir/?api=1&destination=${h.latitude},${h.longitude}&travelmode=driving`;
   }
   // Fallback: full text address
   const parts = [h.name, h.address, h.city, h.state].filter(Boolean);
