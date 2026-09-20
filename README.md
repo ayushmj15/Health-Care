@@ -43,20 +43,10 @@ An AI-powered, all-in-one healthcare accessibility platform designed to bring me
 *   **Mapping:** Google Maps API
 *   **Database/Auth:** Supabase
 
-## 📦 Getting Started
+## 🌐 Live Demo
 
-1.  **Clone the repository**
-2.  **Install dependencies:**
-    ```bash
-    npm install
-    ```
-3.  **Environment Variables:**
-    Copy `.env.local.example` to `.env.local` and fill in your keys (Supabase, Google Maps, Gemini).
-4.  **Run the development server:**
-    ```bash
-    npm run dev
-    ```
-5.  Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+You can access the fully functional live platform here:
+👉 **[Health Care Live Demo](https://health-care-gbbhd3ncb-ayush-gowda-m-js-projects.vercel.app/)**
 
 ## 🚧 Roadmap
 *   **Real-time Appointment Booking:** Direct integration with partner hospitals for live slot availability (Currently in development).
