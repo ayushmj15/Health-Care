@@ -1,130 +1,138 @@
 "use client";
 
-import { motion, useInView } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { Bot, CalendarCheck2, Search, UserPlus } from "lucide-react";
-import { useRef, useState, useEffect } from "react";
+import { useRef } from "react";
 import { SectionHeading } from "@/components/shared/section-heading";
-import { cn } from "@/lib/utils";
 
 const STEPS = [
   {
     icon: UserPlus,
     step: "01",
     title: "Create your profile",
-    description: "Sign up in seconds and add your health basics like blood group, allergies, and emergency contacts. Your data is 256-bit encrypted.",
-    graphic: "bg-gradient-to-br from-primary/20 to-sky-500/20",
-    illustration: UserPlus,
+    description: "Sign up in seconds with email or Google, and add your health basics like blood group, allergies and emergencies.",
   },
   {
     icon: Bot,
     step: "02",
     title: "Ask the AI assistant",
-    description: "Check symptoms, understand complex medical reports, and get a specialist recommendation — 24/7, in plain language.",
-    graphic: "bg-gradient-to-bl from-teal-500/20 to-emerald-500/20",
-    illustration: Bot,
+    description: "Check symptoms, understand reports and get a specialist recommendation — 24/7, in plain language.",
   },
   {
     icon: Search,
     step: "03",
     title: "Find the right hospital",
-    description: "Locate nearby hospitals on the map, compare ratings and distances, and pick the care that perfectly fits your needs.",
-    graphic: "bg-gradient-to-tr from-violet-500/20 to-purple-500/20",
-    illustration: Search,
+    description: "Locate nearby hospitals on the map, compare ratings and distances, and pick the care that fits.",
   },
   {
     icon: CalendarCheck2,
     step: "04",
     title: "Book & stay on track",
-    description: "Book an appointment, get instantly confirmed, and let smart reminders handle your medicines going forward.",
-    graphic: "bg-gradient-to-tl from-amber-500/20 to-orange-500/20",
-    illustration: CalendarCheck2,
+    description: "Book an appointment, get confirmed, and let smart reminders handle your medicines going forward.",
   },
 ];
 
-function StepItem({ step, index, setActiveIndex }: { step: typeof STEPS[0], index: number, setActiveIndex: (i: number) => void }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { margin: "-40% 0px -40% 0px" });
-
-  useEffect(() => {
-    if (isInView) {
-      setActiveIndex(index);
-    }
-  }, [isInView, index, setActiveIndex]);
-
-  return (
-    <div ref={ref} className="py-24 md:py-32 flex flex-col justify-center min-h-[50vh]">
-      <motion.div
-        initial={{ opacity: 0, x: -20 }}
-        whileInView={{ opacity: 1, x: 0 }}
-        viewport={{ once: true, margin: "-10%" }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="flex items-center gap-4 mb-6">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/5 border border-white/10 glass-premium text-primary">
-            <step.icon className="h-6 w-6" />
-          </div>
-          <span className="text-sm font-bold uppercase tracking-widest text-primary/80">Step {step.step}</span>
-        </div>
-        
-        <h3 className="text-3xl font-bold text-white mb-4">{step.title}</h3>
-        <p className="text-lg leading-relaxed text-muted-foreground">{step.description}</p>
-      </motion.div>
-    </div>
-  );
-}
+const iconVariants = {
+  hidden: { opacity: 0, rotateY: -90, scale: 0.8 },
+  visible: {
+    opacity: 1,
+    rotateY: 0,
+    scale: 1,
+    transition: {
+      type: "spring" as const,
+      stiffness: 200,
+      damping: 20,
+    },
+  },
+};
 
 export function HowItWorks() {
-  const [activeIndex, setActiveIndex] = useState(0);
+  const sectionRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start 0.7", "end 0.8"],
+  });
+
+  // Animated connecting line progress
+  const lineScaleX = useTransform(scrollYProgress, [0, 1], [0, 1]);
 
   return (
-    <section id="how-it-works" className="relative py-24 bg-[#0a0a0a]">
+    <section ref={sectionRef} id="how-it-works" className="relative py-24">
       <div className="container">
         <SectionHeading
-          eyebrow="Dynamic Journey"
+          eyebrow="How it works"
           title="Better care in four simple steps"
-          description="From first login to full care management — a journey designed to be completely effortless."
+          description="From first login to full care management — a journey designed to be effortless."
         />
 
-        <div className="mt-16 flex flex-col md:flex-row relative items-start">
-          
-          {/* Left: Scrollable Steps */}
-          <div className="w-full md:w-1/2 md:pr-12 lg:pr-24 relative z-10">
-            {STEPS.map((step, i) => (
-              <StepItem key={step.step} step={step} index={i} setActiveIndex={setActiveIndex} />
-            ))}
+        <div className="relative mt-16 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {/* Animated connecting line (desktop) */}
+          <div className="absolute left-0 right-0 top-12 hidden h-px overflow-hidden lg:block">
+            <motion.div
+              style={{ scaleX: lineScaleX, transformOrigin: "left" }}
+              className="h-full w-full bg-gradient-to-r from-primary via-sky-500 to-teal"
+            />
           </div>
 
-          {/* Right: Sticky Graphic */}
-          <div className="hidden md:block w-1/2 sticky top-32 h-[60vh] rounded-3xl overflow-hidden glass-premium border border-white/10 shadow-2xl">
-            {STEPS.map((step, i) => {
-              const isActive = i === activeIndex;
-              const Icon = step.illustration;
-              return (
-                <motion.div
-                  key={step.step}
-                  initial={false}
-                  animate={{
-                    opacity: isActive ? 1 : 0,
-                    scale: isActive ? 1 : 0.95,
-                    y: isActive ? 0 : 20,
-                  }}
-                  transition={{ duration: 0.5, ease: "easeInOut" }}
-                  className={cn("absolute inset-0 flex items-center justify-center", step.graphic)}
-                  style={{ pointerEvents: isActive ? "auto" : "none" }}
-                >
-                  <div className="relative w-48 h-48 rounded-full bg-black/40 backdrop-blur-xl flex items-center justify-center border border-white/10 shadow-inner">
-                    <motion.div
-                      animate={isActive ? { y: [0, -10, 0] } : {}}
-                      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                    >
-                      <Icon className="w-20 h-20 text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]" />
-                    </motion.div>
-                  </div>
-                </motion.div>
-              );
-            })}
+          {/* Animated vertical timeline (mobile) */}
+          <div className="absolute left-12 top-0 bottom-0 w-px overflow-hidden lg:hidden md:hidden">
+            <motion.div
+              style={{ scaleY: lineScaleX, transformOrigin: "top" }}
+              className="h-full w-full bg-gradient-to-b from-primary via-sky-500 to-teal"
+            />
           </div>
 
+          {STEPS.map((step, i) => (
+            <motion.div
+              key={step.step}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-60px" }}
+              transition={{ delay: i * 0.15 }}
+              className="relative"
+            >
+              {/* 3D flip icon */}
+              <motion.div
+                variants={iconVariants}
+                style={{ perspective: 600, transformStyle: "preserve-3d" }}
+                className="relative z-10 flex h-24 w-24 items-center justify-center rounded-2xl border bg-card shadow-3d transition-shadow hover:shadow-3d-lg"
+              >
+                <step.icon className="h-10 w-10 text-primary" />
+                {/* Pulse ring behind icon */}
+                <span className="absolute inset-0 rounded-2xl bg-primary/5 animate-pulse-ring-expand" />
+              </motion.div>
+
+              <motion.span
+                initial={{ opacity: 0, x: -10 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.15 + 0.2 }}
+                className="mt-5 block text-xs font-bold uppercase tracking-widest text-primary"
+              >
+                {step.step}
+              </motion.span>
+
+              <motion.h3
+                initial={{ opacity: 0, y: 8 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.15 + 0.25 }}
+                className="mt-2 text-lg font-semibold"
+              >
+                {step.title}
+              </motion.h3>
+
+              <motion.p
+                initial={{ opacity: 0, y: 8 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.15 + 0.3 }}
+                className="mt-2 text-sm leading-relaxed text-muted-foreground"
+              >
+                {step.description}
+              </motion.p>
+            </motion.div>
+          ))}
         </div>
       </div>
     </section>
