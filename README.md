@@ -46,7 +46,7 @@ An AI-powered, all-in-one healthcare accessibility platform designed to bring me
 ## 🌐 Live Demo
 
 You can access the fully functional live platform here:
-👉 **[Health Care Live Demo](https://health-care-gbbhd3ncb-ayush-gowda-m-js-projects.vercel.app/)**
+👉 **[Health Care Live Demo](https://health-care-ayush-gowda-m-js-projects.vercel.app/)**
 
 ## 🚧 Roadmap
 *   **Real-time Appointment Booking:** Direct integration with partner hospitals for live slot availability (Currently in development).
