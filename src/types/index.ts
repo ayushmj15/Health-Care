@@ -65,22 +65,6 @@ export interface Hospital {
   is_active: boolean;
 }
 
-export interface Pharmacy {
-  id: string;
-  name: string;
-  address: string | null;
-  city: string | null;
-  state: string | null;
-  phone: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  services: string[];
-  open_24_hours: boolean;
-  rating: number;
-  reviews_count: number;
-  is_active: boolean;
-}
-
 export interface Doctor {
   id: string;
   hospital_id: string | null;

@@ -34,7 +34,6 @@ const PRIMARY_TABS: TabItem[] = [
 ];
 
 const MORE_ITEMS: TabItem[] = [
-  { title: "Stores", href: "/dashboard/medical-stores", icon: Pill },
   { title: "Health Records", href: "/dashboard/records", icon: FolderHeart },
   { title: "Medicines", href: "/dashboard/medicines", icon: Pill },
   { title: "Emergency", href: "/dashboard/emergency", icon: Siren },
