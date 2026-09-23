@@ -90,6 +90,7 @@ export const DASHBOARD_NAV: DashboardNavItem[] = [
   { title: "Home", href: "/dashboard", icon: Home, description: "Your health at a glance" },
   { title: "AI Assistant", href: "/dashboard/assistant", icon: Bot, description: "Ask anything about health" },
   { title: "Find Hospitals", href: "/dashboard/hospitals", icon: MapPin, description: "Locate nearby care" },
+  { title: "Medical Stores", href: "/dashboard/medical-stores", icon: Pill, description: "Nearby pharmacies" },
   { title: "Appointments", href: "/dashboard/appointments", icon: CalendarHeart, description: "Book & manage visits" },
   { title: "Health Records", href: "/dashboard/records", icon: FolderHeart, description: "Your reports & files" },
   { title: "Medicines", href: "/dashboard/medicines", icon: Pill, description: "Track your medication" },
