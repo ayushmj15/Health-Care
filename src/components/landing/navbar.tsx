@@ -64,10 +64,6 @@ export function Navbar() {
             Get started
           </AuthAwareButton>
         </div>
-          <AuthAwareButton href="/signup" loggedInLabel="Dashboard">
-            Get started
-          </AuthAwareButton>
-        </div>
 
         <div className="flex items-center gap-2 md:hidden">
           <ThemeToggle />
